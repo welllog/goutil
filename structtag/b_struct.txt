@@ -1,0 +1,11 @@
+package structtag
+
+type A struct {
+	Age  int    `yaml:"age" json:"Age,omitempty"`
+	Name string `json:"Name,omitempty"`
+}
+
+type B struct {
+	A
+	Addr string `json:"Addr,omitempty"`
+}
