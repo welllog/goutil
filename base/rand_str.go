@@ -40,6 +40,7 @@ func NewRandStr(charSet string) *RandStr {
 
 func (r *RandStr) String(n int) string {
 	var buf strings.Builder
+	buf.Grow(n)
 	for i, cache, remain := n-1, r.int63(), r.charIdxMax; i >= 0; {
 		if remain == 0 {
 			cache, remain = r.int63(), r.charIdxMax

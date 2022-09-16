@@ -140,6 +140,26 @@ func TestFilterMultiByteStr(t *testing.T) {
 	}
 }
 
+func TestFilterBytes(t *testing.T) {
+	tests := []struct {
+		o []byte
+		e []byte
+		f byte
+	}{
+		{[]byte{'a', ' ', 'b', ' ', 'c'}, []byte{'a', 'b', 'c'}, ' '},
+		{[]byte{'a', ' ', '\n', 'b'}, []byte{'a', ' ', 'b'}, '\n'},
+	}
+
+	for _, tt := range tests {
+		require.Equal(t, tt.e, FilterBytes(tt.o, func(x byte) bool {
+			if x == tt.f {
+				return false
+			}
+			return true
+		}))
+	}
+}
+
 func TestOctalStrDecode(t *testing.T) {
 	s := "344\\270\\255\\345\\233\\275\\345\\217\\262\\345\\255\\246\\345\\217\\262\\350\\256\\262\\344\\271\\211\\347\\250\\277"
 	require.Equal(t, "中国史学史讲义稿", OctalStrDecode(s), "", s)

@@ -171,6 +171,7 @@ func FilterMultiByteStr(s string, maxBytesNum int) string {
 		} else {
 			l := utf8.RuneLen(v)
 			if l > maxBytesNum {
+				buf.Grow(len(s))
 				find = true
 				buf.WriteString(s[:i])
 			}
@@ -184,9 +185,20 @@ func FilterMultiByteStr(s string, maxBytesNum int) string {
 	return s
 }
 
+func FilterBytes(s []byte, f func(x byte) bool) []byte {
+	b := s[:0]
+	for _, x := range s {
+		if f(x) {
+			b = append(b, x)
+		}
+	}
+	return b
+}
+
 func OctalStrDecode(s string) string {
 	arr := strings.Split(s, "\\")
 	var buf strings.Builder
+	buf.Grow(len(s))
 	for _, v := range arr {
 		n, _ := strconv.ParseInt(v, 8, 64)
 		buf.WriteByte(byte(n))
@@ -524,6 +536,7 @@ func InArray[T comparable](search T, arr []T) bool {
 
 func SnakeToCamelCase(str string, firstUp bool) string {
 	var buf strings.Builder
+	buf.Grow(len(str))
 	isToUpper := firstUp
 	for _, runeValue := range str {
 		if isToUpper {
