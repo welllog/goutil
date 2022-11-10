@@ -18,10 +18,10 @@ const (
 	CBC_CRED_LEN = 48 //CBC_BLOCK_LEN(16)+CBC_KEY_LEN(32)
 )
 
-//预先生成PrePadPatterns
+// 预先生成PrePadPatterns
 var prePadPatterns [aes.BlockSize + 1][]byte
 
-//fix header
+// fix header
 var cbcfixedSaltHeader = []byte("Salted__")
 
 func init() {

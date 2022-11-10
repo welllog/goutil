@@ -34,6 +34,14 @@ const (
 	WordBits    = 32 << (^uint(0) >> 63)
 )
 
+type Integer interface {
+	~int | ~uint | ~int32 | ~uint32 | ~int64 | ~uint64 | ~int16 | ~uint16 | ~int8 | ~uint8
+}
+
+type Number interface {
+	Integer | ~float32 | ~float64
+}
+
 const (
 	rune1Max     = 1<<7 - 1
 	rune2Max     = 1<<11 - 1
@@ -346,194 +354,6 @@ func Long2ip(properAddress uint32) string {
 	return ip.String()
 }
 
-func ArrayDiff[T comparable](a, b []T) []T {
-	bl := len(b)
-	if bl == 0 {
-		return a
-	}
-
-	bm := make(map[T]struct{}, bl)
-	for _, bv := range b {
-		bm[bv] = struct{}{}
-	}
-
-	na := make([]T, 0, len(a))
-	for _, av := range a {
-		if _, ok := bm[av]; !ok {
-			na = append(na, av)
-		}
-	}
-	return na
-}
-
-func ArrayDiffReuse[T comparable](a, b []T) []T {
-	bl := len(b)
-	if bl == 0 {
-		return a
-	}
-
-	bm := make(map[T]struct{}, bl)
-	for _, bv := range b {
-		bm[bv] = struct{}{}
-	}
-
-	var removed int
-	for ai, av := range a {
-		if _, ok := bm[av]; ok {
-			a[removed], a[ai] = a[ai], a[removed]
-			removed++
-		}
-	}
-	return a[removed:]
-}
-
-func ArrayUnique[T comparable](s []T) []T {
-	sl := len(s)
-	if sl == 0 {
-		return s
-	}
-
-	keys := make(map[T]struct{}, sl)
-	newS := make([]T, 0, sl)
-	var keysLength int
-	for _, v := range s {
-		keys[v] = struct{}{}
-		kl := len(keys)
-		if keysLength < kl {
-			newS = append(newS, v)
-			keysLength = kl
-		}
-	}
-	return newS
-}
-
-func ArrayUniqueReuse[T comparable](s []T) []T {
-	sl := len(s)
-	if sl == 0 {
-		return s
-	}
-
-	keys := make(map[T]struct{}, sl)
-	var remain, keysLength int
-	for _, v := range s {
-		keys[v] = struct{}{}
-		kl := len(keys)
-		if keysLength < kl {
-			s[remain] = v
-			keysLength = kl
-			remain++
-		}
-	}
-	return s[:remain]
-}
-
-// 结果集会包含重复元素
-func ArrayIntersect[T comparable](a, b []T) []T {
-	bl := len(b)
-	if bl == 0 {
-		return b
-	}
-
-	al := len(a)
-	if al == 0 {
-		return a
-	}
-
-	var (
-		m            map[T]struct{}
-		forArr, nArr []T
-	)
-	if al > bl {
-		nArr = make([]T, 0, bl)
-		m = make(map[T]struct{}, bl)
-		for _, v := range b {
-			m[v] = struct{}{}
-		}
-		forArr = a
-	} else {
-		nArr = make([]T, 0, al)
-		m = make(map[T]struct{}, al)
-		for _, v := range a {
-			m[v] = struct{}{}
-		}
-		forArr = b
-	}
-
-	for _, v := range forArr {
-		if _, ok := m[v]; ok {
-			nArr = append(nArr, v)
-		}
-	}
-	return nArr
-}
-
-func ArrayIntersectReuse[T comparable](a, b []T) []T {
-	bl := len(b)
-	if bl == 0 {
-		return b
-	}
-
-	al := len(a)
-	if al == 0 {
-		return a
-	}
-
-	var (
-		m      map[T]struct{}
-		forArr []T
-	)
-	if al > bl {
-		m = make(map[T]struct{}, bl)
-		for _, v := range b {
-			m[v] = struct{}{}
-		}
-		forArr = a
-	} else {
-		m = make(map[T]struct{}, al)
-		for _, v := range a {
-			m[v] = struct{}{}
-		}
-		forArr = b
-	}
-
-	var remain int
-	for i, v := range forArr {
-		if _, ok := m[v]; ok {
-			forArr[remain], forArr[i] = forArr[i], forArr[remain]
-			remain++
-		}
-	}
-	return forArr[:remain]
-}
-
-func ArrayEqual[T comparable](a, b []T) bool {
-	if len(a) != len(b) {
-		return false
-	}
-
-	if (a == nil) != (b == nil) {
-		return false
-	}
-
-	b = b[:len(a)]
-	for i, v := range a {
-		if v != b[i] {
-			return false
-		}
-	}
-
-	return true
-}
-
-func InArray[T comparable](search T, arr []T) bool {
-	for _, v := range arr {
-		if search == v {
-			return true
-		}
-	}
-	return false
-}
-
 func SnakeToCamelCase(str string, firstUp bool) string {
 	var buf strings.Builder
 	buf.Grow(len(str))
@@ -551,6 +371,50 @@ func SnakeToCamelCase(str string, firstUp bool) string {
 		}
 	}
 	return buf.String()
+}
+
+func CamelCaseToSnake(str string) string {
+	var buf strings.Builder
+	buf.Grow(len(str))
+	for i, runeValue := range str {
+		if unicode.IsUpper(runeValue) {
+			if i == 0 {
+				buf.WriteRune(unicode.ToLower(runeValue))
+			} else {
+				buf.WriteByte('_')
+				buf.WriteRune(unicode.ToLower(runeValue))
+			}
+		} else {
+			buf.WriteRune(runeValue)
+		}
+	}
+	return buf.String()
+}
+
+func Min[T Number](args ...T) (min T) {
+	if len(args) == 0 {
+		return
+	}
+	min = args[0]
+	for _, v := range args[1:] {
+		if v < min {
+			min = v
+		}
+	}
+	return
+}
+
+func Max[T Number](args ...T) (max T) {
+	if len(args) == 0 {
+		return
+	}
+	max = args[0]
+	for _, v := range args[1:] {
+		if v > max {
+			max = v
+		}
+	}
+	return
 }
 
 func Pow(x, n int) int {
@@ -648,7 +512,7 @@ func StructToStringMap(s interface{}, m map[string]string) {
 	num := t.NumField()
 	for i := 0; i < num; i++ {
 		field := v.Field(i)
-		if field.CanInterface() {
+		if t.Field(i).IsExported() && field.CanInterface() {
 			fv := ToString(field.Interface())
 			if fv != "" {
 				m[t.Field(i).Name] = fv
