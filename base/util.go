@@ -34,12 +34,24 @@ const (
 	WordBits    = 32 << (^uint(0) >> 63)
 )
 
+type Signed interface {
+	~int | ~int64 | ~int32 | ~int16 | ~int8
+}
+
+type UnSigned interface {
+	~uint | ~uint64 | ~uint32 | ~uint16 | ~uint8
+}
+
+type Float interface {
+	float32 | float64
+}
+
 type Integer interface {
-	~int | ~uint | ~int32 | ~uint32 | ~int64 | ~uint64 | ~int16 | ~uint16 | ~int8 | ~uint8
+	Signed | UnSigned
 }
 
 type Number interface {
-	Integer | ~float32 | ~float64
+	Integer | Float
 }
 
 const (
