@@ -9,6 +9,7 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"hash"
 	"hash/crc32"
@@ -525,7 +526,7 @@ func StructToStringMap(s interface{}, m map[string]string) {
 	for i := 0; i < num; i++ {
 		field := v.Field(i)
 		if t.Field(i).IsExported() && field.CanInterface() {
-			fv := ToString(field.Interface())
+			fv := anyToStr(field.Interface())
 			if fv != "" {
 				m[t.Field(i).Name] = fv
 			}
@@ -591,34 +592,43 @@ func RegPattern(sensitiveWords string) string {
 	return reg.String()
 }
 
-func ToString(value interface{}) string {
+func anyToStr(value any) string {
 	switch v := value.(type) {
 	case []byte:
-		return string(v)
+		return *(*string)(unsafe.Pointer(&v))
 	case string:
 		return v
 	case nil:
 		return ""
 	case int:
 		return strconv.Itoa(v)
+	case int8:
+		return strconv.FormatInt(int64(v), 10)
+	case int16:
+		return strconv.FormatInt(int64(v), 10)
 	case int32:
 		return strconv.FormatInt(int64(v), 10)
 	case int64:
 		return strconv.FormatInt(v, 10)
 	case uint:
-		return strconv.FormatInt(int64(v), 10)
+		return strconv.FormatUint(uint64(v), 10)
+	case uint8:
+		return strconv.FormatUint(uint64(v), 10)
+	case uint16:
+		return strconv.FormatUint(uint64(v), 10)
 	case uint32:
-		return strconv.FormatInt(int64(v), 10)
+		return strconv.FormatUint(uint64(v), 10)
 	case uint64:
-		return strconv.FormatInt(int64(v), 10)
+		return strconv.FormatUint(v, 10)
 	case float32:
 		return strconv.FormatFloat(float64(v), 'f', -1, 32)
 	case float64:
-		return strconv.FormatFloat(float64(v), 'f', -1, 64)
+		return strconv.FormatFloat(v, 'f', -1, 32)
 	case bool:
 		return strconv.FormatBool(v)
 	default:
-		return ""
+		b, _ := json.Marshal(v)
+		return *(*string)(unsafe.Pointer(&b))
 	}
 }
 
