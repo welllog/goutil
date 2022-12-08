@@ -1,6 +1,7 @@
 package base
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/welllog/goutil/require"
@@ -399,19 +400,90 @@ func TestArrayCopy(t *testing.T) {
 			},
 			want: []int{},
 		},
-		{
-			name: "case 6",
-			args: args[int]{
-				arr:    nil,
-				start:  1,
-				length: 2,
-			},
-			want: nil,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			require.Equal(t, tt.want, ArrayCopy(tt.args.arr, tt.args.start, tt.args.length))
 		})
+	}
+}
+
+func TestArrayValues(t *testing.T) {
+	tests := []struct {
+		name string
+		args any
+		want any
+	}{
+		{
+			name: "case1",
+			args: []int{1, 3, 4},
+			want: []string{"1", "3", "4"},
+		},
+		{
+			name: "case2",
+			args: []string{"h", "a", "i", "l"},
+			want: []string{"h", "a", "i"},
+		},
+	}
+
+	for _, tt := range tests {
+		switch v := tt.args.(type) {
+		case []int:
+			require.Equal(t, tt.want, ArrayValues(v, func(n int) (string, bool) {
+				return strconv.Itoa(n), true
+			}), tt.name)
+		case []string:
+			require.Equal(t, tt.want, ArrayValues(v, func(s string) (string, bool) {
+				if s == "l" {
+					return "", false
+				}
+				return s, true
+			}), tt.name)
+		}
+	}
+}
+
+func TestArrayMap(t *testing.T) {
+	tests := []struct {
+		name string
+		args any
+		want any
+	}{
+		{
+			name: "case1",
+			args: []int{1, 3, 4},
+			want: map[int]struct{}{
+				1: {},
+				3: {},
+				4: {},
+			},
+		},
+		{
+			name: "case2",
+			args: []string{"h", "a", "i", "l"},
+			want: map[string]struct{}{
+				"h": {},
+				"a": {},
+				"i": {},
+				"l": {},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		switch v := tt.args.(type) {
+		case []int:
+			m := make(map[int]struct{}, len(v))
+			ArrayMap(v, m, func(n int) (int, struct{}, bool) {
+				return n, struct{}{}, true
+			})
+			require.Equal(t, tt.want, m, tt.name)
+		case []string:
+			m := make(map[string]struct{}, len(v))
+			ArrayMap(v, m, func(s string) (string, struct{}, bool) {
+				return s, struct{}{}, true
+			})
+			require.Equal(t, tt.want, m, tt.name)
+		}
 	}
 }
