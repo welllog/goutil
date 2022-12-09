@@ -1,6 +1,7 @@
 package base
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/welllog/goutil/require"
@@ -15,6 +16,8 @@ func TestArrayDiff(t *testing.T) {
 		{[]int{1, 2, 3}, []int{3, 4, 5, 6, 9, 123, 213}, []int{1, 2}},
 		{[]string{"a", "b", "c"}, []string{"a", "b", "c"}, []string{}},
 		{[]int{1, 2, 3}, []int{4, 5, 6, 2, 2, 9}, []int{1, 3}},
+		{[]string{"hello", "world", "world", "different", "hello"}, []string{"world", "different"}, []string{"hello", "hello"}},
+		{[]int{3, 1, 7, 2, 3, 3, 4, 5, 6, 7}, []int{3, 1, 7}, []int{2, 4, 5, 6}},
 	}
 
 	for _, tt := range tests {
@@ -48,6 +51,11 @@ func TestArrayUnique(t *testing.T) {
 			name:  "int case",
 			value: []int{1, 1, 3, 4, 5, 5, 7, 1},
 			want:  []int{1, 3, 4, 5, 7},
+		},
+		{
+			name:  "int case 2",
+			value: []int{3, 1, 7, 2, 3, 3, 4, 5, 6, 7},
+			want:  []int{3, 1, 7, 2, 4, 5, 6},
 		},
 	}
 
@@ -332,5 +340,150 @@ func TestArrayFilter(t *testing.T) {
 	}
 	for _, tt := range tests {
 		require.Equal(t, tt.expect, ArrayFilter(tt.args, tt.fn))
+	}
+}
+
+func TestArrayCopy(t *testing.T) {
+	type args[T any] struct {
+		arr    []T
+		start  int
+		length int
+	}
+	type testCase[T any] struct {
+		name string
+		args args[T]
+		want []T
+	}
+	tests := []testCase[int]{
+		{
+			name: "case 1",
+			args: args[int]{
+				arr:    []int{1, 2, 3},
+				start:  0,
+				length: -2,
+			},
+			want: []int{1, 2, 3},
+		},
+		{
+			name: "case 2",
+			args: args[int]{
+				arr:    []int{1, 2, 3},
+				start:  3,
+				length: 2,
+			},
+			want: []int{},
+		},
+		{
+			name: "case 3",
+			args: args[int]{
+				arr:    []int{1, 2, 3},
+				start:  1,
+				length: 3,
+			},
+			want: []int{2, 3},
+		},
+		{
+			name: "case 4",
+			args: args[int]{
+				arr:    []int{1, 2, 3},
+				start:  1,
+				length: 2,
+			},
+			want: []int{2, 3},
+		},
+		{
+			name: "case 5",
+			args: args[int]{
+				arr:    []int{},
+				start:  1,
+				length: 2,
+			},
+			want: []int{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.want, ArrayCopy(tt.args.arr, tt.args.start, tt.args.length))
+		})
+	}
+}
+
+func TestArrayValues(t *testing.T) {
+	tests := []struct {
+		name string
+		args any
+		want any
+	}{
+		{
+			name: "case1",
+			args: []int{1, 3, 4},
+			want: []string{"1", "3", "4"},
+		},
+		{
+			name: "case2",
+			args: []string{"h", "a", "i", "l"},
+			want: []string{"h", "a", "i"},
+		},
+	}
+
+	for _, tt := range tests {
+		switch v := tt.args.(type) {
+		case []int:
+			require.Equal(t, tt.want, ArrayValues(v, func(n int) (string, bool) {
+				return strconv.Itoa(n), true
+			}), tt.name)
+		case []string:
+			require.Equal(t, tt.want, ArrayValues(v, func(s string) (string, bool) {
+				if s == "l" {
+					return "", false
+				}
+				return s, true
+			}), tt.name)
+		}
+	}
+}
+
+func TestArrayMap(t *testing.T) {
+	tests := []struct {
+		name string
+		args any
+		want any
+	}{
+		{
+			name: "case1",
+			args: []int{1, 3, 4},
+			want: map[int]struct{}{
+				1: {},
+				3: {},
+				4: {},
+			},
+		},
+		{
+			name: "case2",
+			args: []string{"h", "a", "i", "l"},
+			want: map[string]struct{}{
+				"h": {},
+				"a": {},
+				"i": {},
+				"l": {},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		switch v := tt.args.(type) {
+		case []int:
+			m := make(map[int]struct{}, len(v))
+			ArrayMap(v, m, func(n int) (int, struct{}, bool) {
+				return n, struct{}{}, true
+			})
+			require.Equal(t, tt.want, m, tt.name)
+		case []string:
+			m := make(map[string]struct{}, len(v))
+			ArrayMap(v, m, func(s string) (string, struct{}, bool) {
+				return s, struct{}{}, true
+			})
+			require.Equal(t, tt.want, m, tt.name)
+		}
 	}
 }

@@ -235,3 +235,43 @@ func ArrayFilter[T any](args []T, fn func(T) bool) []T {
 	}
 	return args[:remain]
 }
+
+func ArrayCopy[T any](arr []T, start, length int) []T {
+	l := len(arr)
+	if l == 0 || start >= l || length == 0 {
+		return []T{}
+	}
+
+	if start < 0 {
+		start = 0
+	}
+
+	max := l - start
+	if length < 0 || length > max {
+		length = max
+	}
+
+	result := make([]T, length)
+	copy(result, arr[start:start+length])
+	return result
+}
+
+func ArrayValues[T, V any](arr []T, fn func(T) (V, bool)) []V {
+	result := make([]V, 0, len(arr))
+	for _, v := range arr {
+		nv, ok := fn(v)
+		if ok {
+			result = append(result, nv)
+		}
+	}
+	return result
+}
+
+func ArrayMap[K comparable, V, T any](arr []T, m map[K]V, fn func(T) (K, V, bool)) {
+	for _, v := range arr {
+		key, value, ok := fn(v)
+		if ok {
+			m[key] = value
+		}
+	}
+}
