@@ -1,0 +1,12 @@
+2023-04-06 00:14:18	[33mwarn[0m	t1t2
+2023-04-06 00:14:18	[33mwarn[0m	t3t4
+2023-04-06 00:14:18	[33mwarn[0m	t5	name	bob	age	18
+2023-04-06 00:14:18	[31merror[0m	t1t2
+2023-04-06 00:14:18	[31merror[0m	t3t4
+2023-04-06 00:14:18	[31merror[0m	t5	name	bob	age	18
+{"@timestamp":"2023-04-06 00:14:18","level":"warn","content":"t1t2"}
+{"@timestamp":"2023-04-06 00:14:18","level":"warn","content":"t3t4"}
+{"@timestamp":"2023-04-06 00:14:18","level":"warn","content":"t5","name":"bob","age":18}
+{"@timestamp":"2023-04-06 00:14:18","level":"error","content":"t1t2"}
+{"@timestamp":"2023-04-06 00:14:18","level":"error","content":"t3t4"}
+{"@timestamp":"2023-04-06 00:14:18","level":"error","content":"t5","name":"bob","age":18}
