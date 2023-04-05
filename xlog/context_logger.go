@@ -65,91 +65,91 @@ func (c contextLogger) Log(content any, opts ...LogOption) {
 }
 
 func (c contextLogger) Fatal(a ...any) {
-	if c.isOut(FATAL) {
+	if c.IsOut(FATAL) {
 		c.Logger.Log(fmt.Sprint(a...), withFatal, WithCallerSkipOne, WithFields(c.buildFields()...))
 	}
 }
 
 func (c contextLogger) Fatalf(format string, a ...any) {
-	if c.isOut(FATAL) {
+	if c.IsOut(FATAL) {
 		c.Logger.Log(fmt.Sprintf(format, a...), withFatal, WithCallerSkipOne, WithFields(c.buildFields()...))
 	}
 }
 
 func (c contextLogger) Fatalw(msg string, fields ...Field) {
-	if c.isOut(FATAL) {
+	if c.IsOut(FATAL) {
 		c.Logger.Log(msg, withFatal, WithCallerSkipOne, WithFields(c.buildFields(fields...)...))
 	}
 }
 
 func (c contextLogger) Error(a ...any) {
-	if c.isOut(ERROR) {
+	if c.IsOut(ERROR) {
 		c.Logger.Log(fmt.Sprint(a...), withError, WithCallerSkipOne, WithFields(c.buildFields()...))
 	}
 }
 
 func (c contextLogger) Errorf(format string, a ...any) {
-	if c.isOut(ERROR) {
+	if c.IsOut(ERROR) {
 		c.Logger.Log(fmt.Sprintf(format, a...), withError, WithCallerSkipOne, WithFields(c.buildFields()...))
 	}
 }
 
 func (c contextLogger) Errorw(msg string, fields ...Field) {
-	if c.isOut(ERROR) {
+	if c.IsOut(ERROR) {
 		c.Logger.Log(msg, withError, WithCallerSkipOne, WithFields(c.buildFields(fields...)...))
 	}
 }
 
 func (c contextLogger) Warn(a ...any) {
-	if c.isOut(WARN) {
+	if c.IsOut(WARN) {
 		c.Logger.Log(fmt.Sprint(a...), withWarn, WithCallerSkipOne, WithFields(c.buildFields()...))
 	}
 }
 
 func (c contextLogger) Warnf(format string, a ...any) {
-	if c.isOut(WARN) {
+	if c.IsOut(WARN) {
 		c.Logger.Log(fmt.Sprintf(format, a...), withWarn, WithCallerSkipOne, WithFields(c.buildFields()...))
 	}
 }
 
 func (c contextLogger) Warnw(msg string, fields ...Field) {
-	if c.isOut(WARN) {
+	if c.IsOut(WARN) {
 		c.Logger.Log(msg, withWarn, WithCallerSkipOne, WithFields(c.buildFields(fields...)...))
 	}
 }
 
 func (c contextLogger) Info(a ...any) {
-	if c.isOut(INFO) {
+	if c.IsOut(INFO) {
 		c.Logger.Log(fmt.Sprint(a...), withInfo, WithCallerSkipOne, WithFields(c.buildFields()...))
 	}
 }
 
 func (c contextLogger) Infof(format string, a ...any) {
-	if c.isOut(INFO) {
+	if c.IsOut(INFO) {
 		c.Logger.Log(fmt.Sprintf(format, a...), withInfo, WithCallerSkipOne, WithFields(c.buildFields()...))
 	}
 }
 
 func (c contextLogger) Infow(msg string, fields ...Field) {
-	if c.isOut(INFO) {
+	if c.IsOut(INFO) {
 		c.Logger.Log(msg, withInfo, WithCallerSkipOne, WithFields(c.buildFields(fields...)...))
 	}
 }
 
 func (c contextLogger) Debug(a ...any) {
-	if c.isOut(DEBUG) {
+	if c.IsOut(DEBUG) {
 		c.Logger.Log(fmt.Sprint(a...), withDebug, WithCallerSkipOne, WithFields(c.buildFields()...))
 	}
 }
 
 func (c contextLogger) Debugf(format string, a ...any) {
-	if c.isOut(DEBUG) {
+	if c.IsOut(DEBUG) {
 		c.Logger.Log(fmt.Sprintf(format, a...), withDebug, WithCallerSkipOne, WithFields(c.buildFields()...))
 	}
 }
 
 func (c contextLogger) Debugw(msg string, fields ...Field) {
-	if c.isOut(DEBUG) {
+	if c.IsOut(DEBUG) {
 		c.Logger.Log(msg, withDebug, WithCallerSkipOne, WithFields(c.buildFields(fields...)...))
 	}
 }

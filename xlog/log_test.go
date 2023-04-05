@@ -57,6 +57,7 @@ func TestGetLogger(t *testing.T) {
 	defer f.Close()
 
 	SetWriter(NewWriter(f))
+	SetTimeFormat("")
 	for _, tt := range tests {
 		logging(tt)
 	}

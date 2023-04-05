@@ -84,7 +84,7 @@ func (l *logger) Log(content any, opts ...LogOption) {
 		opt(&o)
 	}
 	o.content = content
-	if l.isOut(o.level) {
+	if l.IsOut(o.level) {
 		l.output(&o)
 	}
 	if o.level == FATAL {
@@ -163,7 +163,7 @@ func (l *logger) fatalf(msg string, fields ...Field) {
 }
 
 func (l *logger) error(fields []Field, a ...any) {
-	if l.isOut(ERROR) {
+	if l.IsOut(ERROR) {
 		l.output(&logOption{
 			level:        ERROR,
 			enableCaller: l.enableCaller,
@@ -174,7 +174,7 @@ func (l *logger) error(fields []Field, a ...any) {
 }
 
 func (l *logger) errorf(fields []Field, format string, a ...any) {
-	if l.isOut(ERROR) {
+	if l.IsOut(ERROR) {
 		l.output(&logOption{
 			level:        ERROR,
 			enableCaller: l.enableCaller,
@@ -185,7 +185,7 @@ func (l *logger) errorf(fields []Field, format string, a ...any) {
 }
 
 func (l *logger) errorw(v any, fields ...Field) {
-	if l.isOut(ERROR) {
+	if l.IsOut(ERROR) {
 		l.output(&logOption{
 			level:        ERROR,
 			enableCaller: l.enableCaller,
@@ -196,7 +196,7 @@ func (l *logger) errorw(v any, fields ...Field) {
 }
 
 func (l *logger) warn(fields []Field, a ...any) {
-	if l.isOut(WARN) {
+	if l.IsOut(WARN) {
 		l.output(&logOption{
 			level:        WARN,
 			enableCaller: l.enableCaller,
@@ -207,7 +207,7 @@ func (l *logger) warn(fields []Field, a ...any) {
 }
 
 func (l *logger) warnf(fields []Field, format string, a ...any) {
-	if l.isOut(WARN) {
+	if l.IsOut(WARN) {
 		l.output(&logOption{
 			level:        WARN,
 			enableCaller: l.enableCaller,
@@ -218,7 +218,7 @@ func (l *logger) warnf(fields []Field, format string, a ...any) {
 }
 
 func (l *logger) warnw(v any, fields ...Field) {
-	if l.isOut(WARN) {
+	if l.IsOut(WARN) {
 		l.output(&logOption{
 			level:        WARN,
 			enableCaller: l.enableCaller,
@@ -229,7 +229,7 @@ func (l *logger) warnw(v any, fields ...Field) {
 }
 
 func (l *logger) info(fields []Field, a ...any) {
-	if l.isOut(INFO) {
+	if l.IsOut(INFO) {
 		l.output(&logOption{
 			level:        INFO,
 			enableCaller: l.enableCaller,
@@ -240,7 +240,7 @@ func (l *logger) info(fields []Field, a ...any) {
 }
 
 func (l *logger) infof(fields []Field, format string, a ...any) {
-	if l.isOut(INFO) {
+	if l.IsOut(INFO) {
 		l.output(&logOption{
 			level:        INFO,
 			enableCaller: l.enableCaller,
@@ -251,7 +251,7 @@ func (l *logger) infof(fields []Field, format string, a ...any) {
 }
 
 func (l *logger) infow(v any, fields ...Field) {
-	if l.isOut(INFO) {
+	if l.IsOut(INFO) {
 		l.output(&logOption{
 			level:        INFO,
 			enableCaller: l.enableCaller,
@@ -262,7 +262,7 @@ func (l *logger) infow(v any, fields ...Field) {
 }
 
 func (l *logger) debug(fields []Field, a ...any) {
-	if l.isOut(DEBUG) {
+	if l.IsOut(DEBUG) {
 		l.output(&logOption{
 			level:        DEBUG,
 			enableCaller: l.enableCaller,
@@ -273,7 +273,7 @@ func (l *logger) debug(fields []Field, a ...any) {
 }
 
 func (l *logger) debugf(fields []Field, format string, a ...any) {
-	if l.isOut(DEBUG) {
+	if l.IsOut(DEBUG) {
 		l.output(&logOption{
 			level:        DEBUG,
 			enableCaller: l.enableCaller,
@@ -284,7 +284,7 @@ func (l *logger) debugf(fields []Field, format string, a ...any) {
 }
 
 func (l *logger) debugw(v any, fields ...Field) {
-	if l.isOut(DEBUG) {
+	if l.IsOut(DEBUG) {
 		l.output(&logOption{
 			level:        DEBUG,
 			enableCaller: l.enableCaller,
@@ -294,7 +294,7 @@ func (l *logger) debugw(v any, fields ...Field) {
 	}
 }
 
-func (l *logger) isOut(level Level) bool {
+func (l *logger) IsOut(level Level) bool {
 	return level >= l.level
 }
 

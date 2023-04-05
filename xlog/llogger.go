@@ -23,7 +23,7 @@ type Logger interface {
 	Debugf(format string, a ...any)
 	Debugw(msg string, fields ...Field)
 
-	isOut(level Level) bool
+	IsOut(level Level) bool
 }
 
 type Field struct {
