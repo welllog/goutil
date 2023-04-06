@@ -36,4 +36,6 @@ COPY --from=builder /usr/local/bin/app /cmd/app
 
 #EXPOSE 80
 
+VOLUME ["/var/log/go"]
+
 CMD ["/cmd/app"]
