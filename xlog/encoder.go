@@ -27,13 +27,13 @@ var pool = sync.Pool{
 	},
 }
 
-// Function to retrieve a *bytes.Buffer object from the pool.
+// getBuf to retrieve a *bytes.Buffer object from the pool.
 // Returns a pointer to the buffer.
 func getBuf() *bytes.Buffer {
 	return pool.Get().(*bytes.Buffer)
 }
 
-// Function to return a *bytes.Buffer object to the pool.
+// putBuf to return a *bytes.Buffer object to the pool.
 // Takes a pointer to the buffer and resets it before returning
 // it to the pool for re-use.
 func putBuf(buf *bytes.Buffer) {
@@ -41,7 +41,7 @@ func putBuf(buf *bytes.Buffer) {
 	pool.Put(buf)
 }
 
-// Function to encode a logOption object as JSON and write it to the given Writer.
+// jsonEncode to encode a logOption object as JSON and write it to the given Writer.
 // Takes a pointer to the logOption object and a Writer object as input.
 func jsonEncode(o *logOption, w Writer) {
 	// Retrieve a *bytes.Buffer object from the pool.
@@ -101,7 +101,7 @@ func jsonEncode(o *logOption, w Writer) {
 	putBuf(buf)
 }
 
-// Function to encode a logOption object as plain text and write it to the given Writer.
+// plainEncode to encode a logOption object as plain text and write it to the given Writer.
 // Takes a pointer to the logOption object and a Writer object as input.
 func plainEncode(o *logOption, w Writer) {
 	// Retrieve a *bytes.Buffer object from the pool.

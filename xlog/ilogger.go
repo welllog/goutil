@@ -3,6 +3,7 @@ package xlog
 // Logger is an interface that defines the methods for logging.
 type Logger interface {
 	// Log writes a log message with the given content and options.
+	// Users can define their own log methods according to this method, such as ctxLogger.
 	Log(content any, opts ...LogOption)
 
 	// Fatal writes a log message with the FATAL log level and call os.Exit(1).

@@ -1,18 +1,12 @@
-	[33mwarn[0m	t1t2
-	[33mwarn[0m	t3t4
-	[33mwarn[0m	t5	name	bob	age	18
-	[31merror[0m	t1t2
-	[31merror[0m	t3t4
-	[31merror[0m	t5	name	bob	age	18
 	warn	t1t2
 	warn	t3t4
 	warn	t5	name	bob	age	18
 	error	t1t2
 	error	t3t4
 	error	t5	name	bob	age	18
-{"@timestamp":"","level":"warn","content":"t1t2"}
-{"@timestamp":"","level":"warn","content":"t3t4"}
-{"@timestamp":"","level":"warn","content":"t5","name":"bob","age":18}
-{"@timestamp":"","level":"error","content":"t1t2"}
-{"@timestamp":"","level":"error","content":"t3t4"}
-{"@timestamp":"","level":"error","content":"t5","name":"bob","age":18}
+	warn	t1t2
+	warn	t3t4
+	warn	t5	name	bob	age	18
+	error	t1t2
+	error	t3t4
+	error	t5	name	bob	age	18

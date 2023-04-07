@@ -27,12 +27,12 @@ func SetDefCtxHandle(handle CtxHandle) {
 	atomic.StorePointer(&dch, unsafe.Pointer(&ctxHandler{handle: handle}))
 }
 
-// Returns the default context handle function
+// getDefCtxHandle returns the default context handle function
 func getDefCtxHandle() CtxHandle {
 	return (*ctxHandler)(atomic.LoadPointer(&dch)).handle
 }
 
-// A default context handle function that returns an empty slice of fields
+// emptyHandle is default context handle function that returns an empty slice of fields
 func emptyHandle(ctx context.Context) []Field {
 	return nil
 }

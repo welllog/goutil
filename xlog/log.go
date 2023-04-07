@@ -80,6 +80,7 @@ func SetWriter(w Writer) {
 // The options are optional and can be used to customize the log entry.
 // This function delegates to the Log method of the default logger instance.
 func Log(content any, opts ...LogOption) {
+	opts = append(opts, WithCallerSkipOne)
 	getDefLogger().Log(content, opts...)
 }
 

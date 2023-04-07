@@ -54,7 +54,7 @@ func WithLoggerCaller(enable bool) LoggerOption {
 	}
 }
 
-// WithLoggerColor sets whether to use colorized output for levelTag on plain encoding
+// WithLoggerColor sets whether to use colorized output for levelTag on plain encoding, not supporting windows.
 func WithLoggerColor(enable bool) LoggerOption {
 	return func(l *logger) {
 		l.enableColor = enable
@@ -310,7 +310,7 @@ func (l *logger) IsEnabled(level Level) bool {
 }
 
 func (l *logger) output(o *logOption) {
-	if l.enableCaller {
+	if o.enableCaller {
 		if o.callerSkip <= 0 {
 			o.callerSkip = defCallerSkip
 		}
