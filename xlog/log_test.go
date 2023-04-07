@@ -40,7 +40,7 @@ func TestGetLogger(t *testing.T) {
 		logging(tt)
 	}
 
-	SetEnableCaller(false)
+	SetCaller(false)
 	for _, tt := range tests {
 		logging(tt)
 	}
@@ -62,10 +62,17 @@ func TestGetLogger(t *testing.T) {
 		logging(tt)
 	}
 
+	SetColor(false)
+	for _, tt := range tests {
+		logging(tt)
+	}
+
 	SetEncode(JSON)
 	for _, tt := range tests {
 		logging(tt)
 	}
+
+	SetColor(false)
 }
 
 func TestFatal(t *testing.T) {

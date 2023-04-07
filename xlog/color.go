@@ -17,6 +17,9 @@ const (
 	White     = "\033[97m"
 )
 
+// wrapLevelWithColor takes in a level of logging and a levelTag string, and returns a string that
+// contains the levelTag string wrapped with an ANSI color code to represent the level of logging.
+// The returned string will have different colors depending on the level of logging.
 func wrapLevelWithColor(level Level, levelTag string) string {
 	switch level {
 	case FATAL:
