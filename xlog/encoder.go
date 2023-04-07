@@ -51,9 +51,15 @@ func jsonEncode(o *logOption, w Writer) {
 	buf.WriteString(o.timestamp)
 	buf.WriteString(`","level":"`)
 	buf.WriteString(o.levelTag)
-	if o.caller != "" {
+	if o.enableCaller {
+		if o.callerSkip <= 0 {
+			o.callerSkip = defCallerSkip
+		}
+		file, line := getCaller(o.callerSkip)
 		buf.WriteString(`","caller":"`)
-		buf.WriteString(o.caller)
+		buf.WriteString(file)
+		buf.WriteByte(':')
+		buf.WriteString(strconv.Itoa(line))
 	}
 	buf.WriteString(`","content":`)
 	content, ok := anyToJsonValue(o.content)
@@ -115,8 +121,14 @@ func plainEncode(o *logOption, w Writer) {
 	}
 	buf.WriteString(o.levelTag)
 	buf.WriteByte(sep)
-	if o.caller != "" {
-		buf.WriteString(o.caller)
+	if o.enableCaller {
+		if o.callerSkip <= 0 {
+			o.callerSkip = defCallerSkip
+		}
+		file, line := getCaller(o.callerSkip)
+		buf.WriteString(file)
+		buf.WriteByte(':')
+		buf.WriteString(strconv.Itoa(line))
 		buf.WriteByte(sep)
 	}
 	content, _ := anyToJsonValue(o.content)

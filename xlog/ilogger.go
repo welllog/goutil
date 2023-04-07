@@ -56,13 +56,12 @@ type logOption struct {
 	// users can also customize semantic tags, such as slow.
 	levelTag  string
 	timestamp string  // timestamp is the time the log message was created.
-	caller    string  // caller is the file and line number where the log message was created.
 	content   any     // content is the main content of the log message.
 	fields    []Field // fields is a slice of key-value pairs of additional data to include in the log message.
 }
 
 // defCallerSkip is the default number of stack frames to skip to find the caller information.
-const defCallerSkip = 4
+const defCallerSkip = 5
 
 // WithLevel returns a LogOption that sets the logging level and the corresponding tag.
 func WithLevel(level Level, levelTag string) LogOption {

@@ -310,12 +310,6 @@ func (l *logger) IsEnabled(level Level) bool {
 }
 
 func (l *logger) output(o *logOption) {
-	if o.enableCaller {
-		if o.callerSkip <= 0 {
-			o.callerSkip = defCallerSkip
-		}
-		o.caller = getCaller(o.callerSkip)
-	}
 	if o.levelTag == "" {
 		o.levelTag = o.level.String()
 	}

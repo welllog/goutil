@@ -2,15 +2,20 @@ package xlog
 
 import (
 	"bytes"
+	"context"
 	"fmt"
+	"log"
 	"os"
 	"testing"
 )
 
 func initTestLogger() {
+	SetLevel(DEBUG)
 	SetTimeFormat("")
 	SetColor(false)
 	SetCaller(false)
+	SetEncode(JSON)
+	SetWriter(csWriter)
 }
 
 func TestPrintf(t *testing.T) {
@@ -170,6 +175,8 @@ func TestPrintw(t *testing.T) {
 }
 
 func TestSetLevel(t *testing.T) {
+	initTestLogger()
+
 	var buf bytes.Buffer
 	SetWriter(NewWriter(&buf))
 
@@ -229,6 +236,10 @@ func TestSetLevel(t *testing.T) {
 }
 
 func TestLogFacade(t *testing.T) {
+	initTestLogger()
+	SetColor(true)
+	SetCaller(true)
+
 	tests := []struct {
 		arr    []any
 		f      string
@@ -257,13 +268,7 @@ func TestLogFacade(t *testing.T) {
 		logging(tt)
 	}
 
-	SetLevel(WARN)
-	SetCaller(false)
-	for _, tt := range tests {
-		logging(tt)
-	}
-
-	SetTimeFormat("2006-01-02 15:04:05")
+	SetTimeFormat("2006/01/02 15/04/05")
 	for _, tt := range tests {
 		logging(tt)
 	}
@@ -287,6 +292,8 @@ func TestLogFacade(t *testing.T) {
 }
 
 func TestLog(t *testing.T) {
+	initTestLogger()
+	SetCaller(true)
 	SetEncode(PLAIN)
 	Log("test log", WithLevel(INFO, "stat"), WithFields(Field{Key: "name", Value: "bob"}))
 	Log("test log", WithLevel(WARN, "slow"), WithCaller(false))
@@ -306,6 +313,8 @@ func (l *customLogger) Stat(a ...any) {
 }
 
 func TestWrapLogger(t *testing.T) {
+	initTestLogger()
+	SetCaller(true)
 	SetEncode(PLAIN)
 	l := customLogger{
 		Logger: GetLogger(),
@@ -322,18 +331,98 @@ func logging(tt struct {
 	fields []Field
 }) {
 	Debug(tt.arr...)
-	Debugf(tt.f, tt.a...)
-	Debugw(tt.msg, tt.fields...)
 
-	Info(tt.arr...)
 	Infof(tt.f, tt.a...)
-	Infow(tt.msg, tt.fields...)
 
-	Warn(tt.arr...)
-	Warnf(tt.f, tt.a...)
 	Warnw(tt.msg, tt.fields...)
+}
 
-	Error(tt.arr...)
-	Errorf(tt.f, tt.a...)
-	Errorw(tt.msg, tt.fields...)
+func BenchmarkInfo(b *testing.B) {
+	b.Run("std.logger", func(b *testing.B) {
+		logger := log.New(discard{}, "", log.Ldate|log.Ltime|log.Lshortfile|log.Lmsgprefix)
+
+		b.ReportAllocs()
+		b.ResetTimer()
+
+		b.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				logger.Print("test")
+				logger.Printf("test %d", 2)
+			}
+		})
+	})
+
+	b.Run("xlog", func(b *testing.B) {
+		logger := NewLogger(WithLoggerWriter(NewWriter(discard{})))
+
+		b.ReportAllocs()
+		b.ResetTimer()
+
+		b.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				logger.Info("test")
+				logger.Infof("test %d", 2)
+			}
+		})
+	})
+
+	b.Run("xlog.ctx", func(b *testing.B) {
+		logger := NewLogger(WithLoggerWriter(NewWriter(discard{})))
+		logger = WithContext(logger, context.Background())
+
+		b.ReportAllocs()
+		b.ResetTimer()
+
+		b.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				logger.Info("test")
+				logger.Infof("test %d", 2)
+			}
+		})
+	})
+}
+
+func BenchmarkSingleInfo(b *testing.B) {
+	b.Run("std.logger", func(b *testing.B) {
+		logger := log.New(discard{}, "", log.Ldate|log.Ltime|log.Lshortfile)
+
+		b.ReportAllocs()
+		b.ResetTimer()
+
+		for i := 0; i < b.N; i++ {
+			logger.Print("test")
+			logger.Printf("test %d", 2)
+		}
+	})
+
+	b.Run("xlog", func(b *testing.B) {
+		logger := NewLogger(WithLoggerWriter(NewWriter(discard{})))
+
+		b.ReportAllocs()
+		b.ResetTimer()
+
+		for i := 0; i < b.N; i++ {
+			logger.Info("test")
+			logger.Infof("test %d", 2)
+		}
+	})
+
+	b.Run("xlog.ctx", func(b *testing.B) {
+		logger := NewLogger(WithLoggerWriter(NewWriter(discard{})))
+		logger = WithContext(logger, context.Background())
+
+		b.ReportAllocs()
+		b.ResetTimer()
+
+		for i := 0; i < b.N; i++ {
+			logger.Info("test")
+			logger.Infof("test %d", 2)
+		}
+	})
+}
+
+type discard struct{}
+
+func (d discard) Write(p []byte) (int, error) {
+	return len(p), nil
 }

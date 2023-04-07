@@ -1,12 +1,6 @@
-	warn	t1t2
-	warn	t3t4
-	warn	t5	name	bob	age	18
-	error	t1t2
-	error	t3t4
-	error	t5	name	bob	age	18
-	warn	t1t2
-	warn	t3t4
-	warn	t5	name	bob	age	18
-	error	t1t2
-	error	t3t4
-	error	t5	name	bob	age	18
+	[37mdebug[0m	xlog/log_test.go:338	t1t2
+	[32minfo[0m	xlog/log_test.go:340	t3t4
+	[33mwarn[0m	xlog/log_test.go:342	t5	name	bob	age	18
+	debug	xlog/log_test.go:338	t1t2
+	info	xlog/log_test.go:340	t3t4
+	warn	xlog/log_test.go:342	t5	name	bob	age	18

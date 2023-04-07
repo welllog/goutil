@@ -6,6 +6,8 @@ import (
 )
 
 func TestWithContext(t *testing.T) {
+	setDefLogger(newLogger())
+
 	ctx := context.WithValue(context.Background(), "uid", 3)
 	SetDefCtxHandle(func(ctx context.Context) []Field {
 		var fs []Field
@@ -23,17 +25,14 @@ func TestWithContext(t *testing.T) {
 
 	SetEncode(PLAIN)
 	l := WithContext(GetLogger(), ctx)
-	l.Debug("test")
-	l.Info("test")
+	l.Debug("test uid")
 
 	ctx = context.WithValue(context.Background(), "name", "bob")
 	l = WithContext(l, ctx)
-	l.Debug("test")
-	l.Info("test")
+	l.Debug("test name")
 
 	l = WithContext(l, context.Background())
-	l.Debug("test final")
-	l.Info("test final")
+	l.Debug("test name")
 
 	l = WithEntries(l, map[string]any{
 		"ip":      "127.0.0.1",
@@ -42,9 +41,8 @@ func TestWithContext(t *testing.T) {
 	})
 
 	l.Debug("test entries")
-	l.Info("test entries")
 
 	l = WithContext(l, context.WithValue(context.Background(), "name", "linda"))
-	l.Debug("test final")
-	l.Info("test final")
+	l.Debug("test override name")
+	l.Log("test log", WithLevel(DEBUG, "trace"))
 }

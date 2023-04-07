@@ -4,31 +4,33 @@ import (
 	"fmt"
 	"runtime"
 	"strconv"
-	"strings"
 	"unsafe"
 )
 
-func getCaller(callDepth int) string {
+func getCaller(callDepth int) (string, int) {
 	_, file, line, ok := runtime.Caller(callDepth)
 	if !ok {
-		return ""
+		return "???", 0
 	}
-
-	return prettyCaller(file, line)
+	return shortFile(file), line
 }
 
-func prettyCaller(file string, line int) string {
-	idx := strings.LastIndexByte(file, '/')
-	if idx < 0 {
-		return file + ":" + strconv.Itoa(line)
+func shortFile(file string) string {
+	var count int
+	idx := -1
+	for i := len(file) - 5; i >= 0; i-- {
+		if file[i] == '/' {
+			count++
+			if count == 2 {
+				idx = i
+				break
+			}
+		}
 	}
-
-	idx = strings.LastIndexByte(file[:idx], '/')
-	if idx < 0 {
-		return file + ":" + strconv.Itoa(line)
+	if idx == -1 {
+		return file
 	}
-
-	return file[idx+1:] + ":" + strconv.Itoa(line)
+	return file[idx+1:]
 }
 
 func anyToJsonValue(value any) (string, bool) {
