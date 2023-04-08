@@ -3,7 +3,9 @@ package xlog
 import (
 	"bytes"
 	"strconv"
+	"strings"
 	"sync"
+	"time"
 )
 
 // EncodeType is an enumeration type for different encoding types.
@@ -20,143 +22,116 @@ const (
 
 // Declare a new sync.Pool object, which allows for efficient
 // re-use of objects across goroutines.
-var pool = sync.Pool{
+var bufPool = sync.Pool{
 	New: func() any {
 		var b [200]byte
-		return bytes.NewBuffer(b[:0])
+		return b[:0]
 	},
 }
 
-// getBuf to retrieve a *bytes.Buffer object from the pool.
-// Returns a pointer to the buffer.
-func getBuf() *bytes.Buffer {
-	return pool.Get().(*bytes.Buffer)
+// getBuf to retrieve a []byte from the pool.
+func getBuf() []byte {
+	return bufPool.Get().([]byte)
 }
 
-// putBuf to return a *bytes.Buffer object to the pool.
-// Takes a pointer to the buffer and resets it before returning
-// it to the pool for re-use.
-func putBuf(buf *bytes.Buffer) {
-	buf.Reset()
-	pool.Put(buf)
+// putBuf to return a []byte to the pool.
+func putBuf(buf []byte) {
+	bufPool.Put(buf)
 }
 
 // jsonEncode to encode a logOption object as JSON and write it to the given Writer.
 // Takes a pointer to the logOption object and a Writer object as input.
 func jsonEncode(o *logOption, w Writer) {
-	// Retrieve a *bytes.Buffer object from the pool.
 	buf := getBuf()
+	buf = append(buf, `{"@timestamp":"`...)
+	buf = time.Now().AppendFormat(buf, o.timeFormat)
 
-	buf.WriteString(`{"@timestamp":"`)
-	buf.WriteString(o.timestamp)
-	buf.WriteString(`","level":"`)
-	buf.WriteString(o.levelTag)
+	bbuf := bytes.NewBuffer(buf)
+	bbuf.WriteString(`","level":"`)
+	bbuf.WriteString(o.levelTag)
 	if o.enableCaller {
-		if o.callerSkip <= 0 {
-			o.callerSkip = defCallerSkip
-		}
-		file, line := getCaller(o.callerSkip)
-		buf.WriteString(`","caller":"`)
-		buf.WriteString(file)
-		buf.WriteByte(':')
-		buf.WriteString(strconv.Itoa(line))
+		bbuf.WriteString(`","caller":"`)
+		bbuf.WriteString(o.file)
+		bbuf.WriteByte(':')
+		bbuf.WriteString(strconv.Itoa(o.line))
 	}
-	buf.WriteString(`","content":`)
+	bbuf.WriteString(`","content":`)
 	content, ok := anyToJsonValue(o.content)
 	if ok {
-		buf.WriteString(content)
+		bbuf.WriteString(content)
 	} else {
-		buf.WriteString(strconv.Quote(content))
+		// bbuf.WriteString(strconv.Quote(content))
+		bbuf.WriteString(`"`)
+		bbuf.WriteString(strings.Replace(content, `"`, `'`, -1))
+		bbuf.WriteString(`"`)
 	}
 
 	// Loop over the fields of the logOption object and write them to the buffer as JSON.
-	set := make(map[string]struct{}, len(o.fields))
 	for _, field := range o.fields {
-		// Skip any fields that should be filtered out.
-		_, ok := filterField[field.Key]
-		if ok {
-			continue
-		}
-
-		// Check if the field has already been written to the buffer.
-		_, ok = set[field.Key]
-		if ok {
-			continue
-		}
-		set[field.Key] = struct{}{}
-
 		// Write the field key and value to the buffer as JSON.
-		buf.WriteString(`,"`)
-		buf.WriteString(field.Key)
-		buf.WriteString(`":`)
+		bbuf.WriteString(`,"`)
+		bbuf.WriteString(field.Key)
+		bbuf.WriteString(`":`)
 		v, ok := anyToJsonValue(field.Value)
 		if ok {
-			buf.WriteString(v)
+			bbuf.WriteString(v)
 		} else {
-			buf.WriteString(strconv.Quote(v))
+			// bbuf.WriteString(strconv.Quote(v))
+			bbuf.WriteString(`"`)
+			bbuf.WriteString(strings.Replace(v, `"`, `'`, -1))
+			bbuf.WriteString(`"`)
 		}
 	}
 
 	// Write the closing curly brace and newline character to the buffer.
-	buf.WriteString("}\n")
+	bbuf.WriteString("}\n")
 
 	// Write the contents of the buffer to the Writer.
-	_, _ = w.Write(o.level, buf.Bytes())
+	_, _ = w.Write(o.level, bbuf.Bytes())
 
 	// Reset the buffer and return it to the pool for re-use.
-	putBuf(buf)
+	bbuf.Reset()
+	putBuf(bbuf.Bytes())
 }
 
 // plainEncode to encode a logOption object as plain text and write it to the given Writer.
 // Takes a pointer to the logOption object and a Writer object as input.
 func plainEncode(o *logOption, w Writer) {
-	// Retrieve a *bytes.Buffer object from the pool.
 	buf := getBuf()
+	buf = time.Now().AppendFormat(buf, o.timeFormat)
 
-	// Write the timestamp, log level, caller (if any), and content to the buffer as plain text.
-	buf.WriteString(o.timestamp)
-	buf.WriteByte(sep)
+	bbuf := bytes.NewBuffer(buf)
+	bbuf.WriteByte(sep)
 	if o.enableColor {
 		o.levelTag = wrapLevelWithColor(o.level, o.levelTag)
 	}
-	buf.WriteString(o.levelTag)
-	buf.WriteByte(sep)
+	bbuf.WriteString(o.levelTag)
+	bbuf.WriteByte(sep)
 	if o.enableCaller {
-		if o.callerSkip <= 0 {
-			o.callerSkip = defCallerSkip
-		}
-		file, line := getCaller(o.callerSkip)
-		buf.WriteString(file)
-		buf.WriteByte(':')
-		buf.WriteString(strconv.Itoa(line))
-		buf.WriteByte(sep)
+		bbuf.WriteString(o.file)
+		bbuf.WriteByte(':')
+		bbuf.WriteString(strconv.Itoa(o.line))
+		bbuf.WriteByte(sep)
 	}
 	content, _ := anyToJsonValue(o.content)
-	buf.WriteString(content)
+	bbuf.WriteString(content)
 
 	// Loop over the fields of the logOption object and write them to the buffer as plain text.
-	set := make(map[string]struct{}, len(o.fields))
 	for _, field := range o.fields {
-		// Check if the field has already been written to the buffer.
-		_, ok := set[field.Key]
-		if ok {
-			continue
-		}
-		set[field.Key] = struct{}{}
-
-		buf.WriteByte(sep)
-		buf.WriteString(field.Key)
-		buf.WriteByte(sep)
+		bbuf.WriteByte(sep)
+		bbuf.WriteString(field.Key)
+		bbuf.WriteByte(sep)
 		v, _ := anyToJsonValue(field.Value)
-		buf.WriteString(v)
+		bbuf.WriteString(v)
 	}
 
 	// Write the newline character to the buffer.
-	buf.WriteByte('\n')
+	bbuf.WriteByte('\n')
 
 	// Write the contents of the buffer to the Writer.
-	_, _ = w.Write(o.level, buf.Bytes())
+	_, _ = w.Write(o.level, bbuf.Bytes())
 
 	// Reset the buffer and return it to the pool for re-use.
-	putBuf(buf)
+	bbuf.Reset()
+	putBuf(bbuf.Bytes())
 }

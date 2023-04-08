@@ -46,22 +46,24 @@ type LogOption func(*logOption)
 
 // logOption is a struct that represents options to use when logging a message.
 type logOption struct {
-	level        Level // level is the severity level of the log message.
-	enableCaller bool  // enableCaller indicates whether to include caller information in the log message.
-	enableColor  bool  // enableColor indicates whether to enable colorized output for the levelTag on plain encoding.
-	callerSkip   int   // callerSkip is the number of stack frames to skip to find the caller information.
+	level        Level  // level is the severity level of the log message.
+	enableCaller bool   // enableCaller indicates whether to include caller information in the log message.
+	enableColor  bool   // enableColor indicates whether to enable colorized output for the levelTag on plain encoding.
+	callerSkip   int    // callerSkip is the number of stack frames to skip to find the caller information.
+	file         string // file is the file name of the log message.
+	line         int    // line is the line number of the log message.
 
 	// levelTag is the string representation of the severity level
 	// The default debug, info, warn, error, and fatal correspond to DEBUG, INFO, WARN, ERROR, and FATAL log levels respectively
 	// users can also customize semantic tags, such as slow.
-	levelTag  string
-	timestamp string  // timestamp is the time the log message was created.
-	content   any     // content is the main content of the log message.
-	fields    []Field // fields is a slice of key-value pairs of additional data to include in the log message.
+	levelTag   string
+	timeFormat string
+	content    any     // content is the main content of the log message.
+	fields     []Field // fields is a slice of key-value pairs of additional data to include in the log message.
 }
 
 // defCallerSkip is the default number of stack frames to skip to find the caller information.
-const defCallerSkip = 5
+const defCallerSkip = 4
 
 // WithLevel returns a LogOption that sets the logging level and the corresponding tag.
 func WithLevel(level Level, levelTag string) LogOption {

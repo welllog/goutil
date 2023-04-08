@@ -313,9 +313,38 @@ func (l *logger) output(o *logOption) {
 	if o.levelTag == "" {
 		o.levelTag = o.level.String()
 	}
+	if o.enableCaller {
+		if o.callerSkip <= 0 {
+			o.callerSkip = defCallerSkip
+		}
+		o.file, o.line = getCaller(o.callerSkip)
+	}
+	o.fields = l.filterFields(o.fields)
 	o.enableColor = l.enableColor
-	o.timestamp = time.Now().Format(l.timeFormat)
+	o.timeFormat = l.timeFormat
 	l.encode(o, l.writer)
+}
+
+func (l *logger) filterFields(fields []Field) []Field {
+	n := len(fields)
+	if n == 0 {
+		return fields
+	}
+
+	set := make(map[string]struct{}, n)
+	var remain int
+	for idx, field := range fields {
+		_, ok := filterField[field.Key]
+		if !ok {
+			_, ok = set[field.Key]
+			if !ok {
+				set[field.Key] = struct{}{}
+				fields[remain], fields[idx] = fields[idx], fields[remain]
+				remain++
+			}
+		}
+	}
+	return fields[:remain]
 }
 
 func (l *logger) clone() *logger {

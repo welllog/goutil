@@ -339,7 +339,7 @@ func logging(tt struct {
 
 func BenchmarkInfo(b *testing.B) {
 	b.Run("std.logger", func(b *testing.B) {
-		logger := log.New(discard{}, "", log.Ldate|log.Ltime|log.Lshortfile|log.Lmsgprefix)
+		logger := log.New(discard{}, "", log.Ldate|log.Ltime|log.Lmsgprefix)
 
 		b.ReportAllocs()
 		b.ResetTimer()
@@ -353,7 +353,7 @@ func BenchmarkInfo(b *testing.B) {
 	})
 
 	b.Run("xlog", func(b *testing.B) {
-		logger := NewLogger(WithLoggerWriter(NewWriter(discard{})))
+		logger := NewLogger(WithLoggerWriter(NewWriter(discard{})), WithLoggerEncode(PLAIN), WithLoggerCaller(false))
 
 		b.ReportAllocs()
 		b.ResetTimer()
