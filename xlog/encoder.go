@@ -103,9 +103,10 @@ func plainEncode(o *logOption, w Writer) {
 	bbuf := bytes.NewBuffer(buf)
 	bbuf.WriteByte(sep)
 	if o.enableColor {
-		o.levelTag = wrapLevelWithColor(o.level, o.levelTag)
+		writeLevelWithColor(o.level, o.levelTag, bbuf)
+	} else {
+		bbuf.WriteString(o.levelTag)
 	}
-	bbuf.WriteString(o.levelTag)
 	bbuf.WriteByte(sep)
 	if o.enableCaller {
 		bbuf.WriteString(o.file)

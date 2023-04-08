@@ -353,7 +353,7 @@ func BenchmarkInfo(b *testing.B) {
 	})
 
 	b.Run("xlog", func(b *testing.B) {
-		logger := NewLogger(WithLoggerWriter(NewWriter(discard{})), WithLoggerEncode(PLAIN), WithLoggerCaller(false))
+		logger := NewLogger(WithLoggerWriter(NewWriter(discard{})), WithLoggerCaller(false))
 
 		b.ReportAllocs()
 		b.ResetTimer()
@@ -367,7 +367,7 @@ func BenchmarkInfo(b *testing.B) {
 	})
 
 	b.Run("xlog.ctx", func(b *testing.B) {
-		logger := NewLogger(WithLoggerWriter(NewWriter(discard{})))
+		logger := NewLogger(WithLoggerWriter(NewWriter(discard{})), WithLoggerCaller(false))
 		logger = WithContext(logger, context.Background())
 
 		b.ReportAllocs()

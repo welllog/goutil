@@ -2,9 +2,9 @@
 
 package xlog
 
-// wrapLevelWithColor is a stub function that always returns the input levelTag string unchanged. It's used as a placeholder
+// writeLevelWithColor is a stub function that always returns the input levelTag string unchanged. It's used as a placeholder
 // function on Windows OS because the ANSI color codes that are used to format console output on Unix-based systems aren't
 // supported by the Windows console.
-func wrapLevelWithColor(level Level, levelTag string) string {
-	return levelTag
+func writeLevelWithColor(level Level, levelTag string, bbuf *bytes.Buffer) {
+	bbuf.WriteString(levelTag)
 }
