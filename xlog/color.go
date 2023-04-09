@@ -2,8 +2,6 @@
 
 package xlog
 
-import "bytes"
-
 const (
 	Reset     = "\033[0m"
 	Red       = "\033[31m"
@@ -22,22 +20,22 @@ const (
 // writeLevelWithColor takes in a level of logging and a levelTag string, and returns a string that
 // contains the levelTag string wrapped with an ANSI color code to represent the level of logging.
 // The returned string will have different colors depending on the level of logging.
-func writeLevelWithColor(level Level, levelTag string, bbuf *bytes.Buffer) {
+func writeLevelWithColor(level Level, levelTag string, buf *Buffer) {
 	switch level {
 	case FATAL:
-		bbuf.WriteString(RedBold)
+		_, _ = buf.WriteString(RedBold)
 	case ERROR:
-		bbuf.WriteString(Red)
+		_, _ = buf.WriteString(Red)
 	case WARN:
-		bbuf.WriteString(Yellow)
+		_, _ = buf.WriteString(Yellow)
 	case INFO:
-		bbuf.WriteString(Green)
+		_, _ = buf.WriteString(Green)
 	case DEBUG:
-		bbuf.WriteString(Gray)
+		_, _ = buf.WriteString(Gray)
 	default:
-		bbuf.WriteString(levelTag)
+		_, _ = buf.WriteString(levelTag)
 		return
 	}
-	bbuf.WriteString(levelTag)
-	bbuf.WriteString(Reset)
+	_, _ = buf.WriteString(levelTag)
+	_, _ = buf.WriteString(Reset)
 }

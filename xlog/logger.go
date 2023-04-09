@@ -1,7 +1,6 @@
 package xlog
 
 import (
-	"fmt"
 	"os"
 	"time"
 )
@@ -86,7 +85,7 @@ func WithLoggerWriter(w Writer) LoggerOption {
 	}
 }
 
-func (l *logger) Log(content any, opts ...LogOption) {
+func (l *logger) Log(opts ...LogOption) {
 	o := logOption{
 		enableCaller: l.enableCaller,
 		callerSkip:   defCallerSkip - 1,
@@ -94,7 +93,6 @@ func (l *logger) Log(content any, opts ...LogOption) {
 	for _, opt := range opts {
 		opt(&o)
 	}
-	o.content = content
 	if l.IsEnabled(o.level) {
 		l.output(&o)
 	}
@@ -104,23 +102,23 @@ func (l *logger) Log(content any, opts ...LogOption) {
 }
 
 func (l *logger) Fatal(a ...any) {
-	l.fatalf(fmt.Sprint(a...))
+	l.fatal(a...)
 }
 
 func (l *logger) Fatalf(format string, a ...any) {
-	l.fatalf(fmt.Sprintf(format, a...))
+	l.fatalf(format, a...)
 }
 
 func (l *logger) Fatalw(msg string, fields ...Field) {
-	l.fatalf(msg, fields...)
+	l.fatalw(msg, fields...)
 }
 
 func (l *logger) Error(a ...any) {
-	l.error(nil, a...)
+	l.error(a...)
 }
 
 func (l *logger) Errorf(format string, a ...any) {
-	l.errorf(nil, format, a...)
+	l.errorf(format, a...)
 }
 
 func (l *logger) Errorw(msg string, fields ...Field) {
@@ -128,11 +126,11 @@ func (l *logger) Errorw(msg string, fields ...Field) {
 }
 
 func (l *logger) Warn(a ...any) {
-	l.warn(nil, a...)
+	l.warn(a...)
 }
 
 func (l *logger) Warnf(format string, a ...any) {
-	l.warnf(nil, format, a...)
+	l.warnf(format, a...)
 }
 
 func (l *logger) Warnw(msg string, fields ...Field) {
@@ -140,11 +138,11 @@ func (l *logger) Warnw(msg string, fields ...Field) {
 }
 
 func (l *logger) Info(a ...any) {
-	l.info(nil, a...)
+	l.info(a...)
 }
 
 func (l *logger) Infof(format string, a ...any) {
-	l.infof(nil, format, a...)
+	l.infof(format, a...)
 }
 
 func (l *logger) Infow(msg string, fields ...Field) {
@@ -152,154 +150,184 @@ func (l *logger) Infow(msg string, fields ...Field) {
 }
 
 func (l *logger) Debug(a ...any) {
-	l.debug(nil, a...)
+	l.debug(a...)
 }
 
 func (l *logger) Debugf(format string, a ...any) {
-	l.debugf(nil, format, a...)
+	l.debugf(format, a...)
 }
 
 func (l *logger) Debugw(msg string, fields ...Field) {
 	l.debugw(msg, fields...)
 }
 
-func (l *logger) fatalf(msg string, fields ...Field) {
+func (l *logger) fatal(a ...any) {
 	l.output(&logOption{
 		level:        FATAL,
 		enableCaller: l.enableCaller,
-		content:      msg,
+		msgType:      msgTypePrint,
+		msgArgs:      a,
+	})
+	os.Exit(1)
+}
+
+func (l *logger) fatalf(format string, a ...any) {
+	l.output(&logOption{
+		level:        FATAL,
+		enableCaller: l.enableCaller,
+		msgType:      msgTypePrintf,
+		msgArgs:      a,
+		msgOrFormat:  format,
+	})
+	os.Exit(1)
+}
+
+func (l *logger) fatalw(msg string, fields ...Field) {
+	l.output(&logOption{
+		level:        FATAL,
+		enableCaller: l.enableCaller,
+		msgType:      msgTypePrintMsg,
+		msgOrFormat:  msg,
 		fields:       fields,
 	})
 	os.Exit(1)
 }
 
-func (l *logger) error(fields []Field, a ...any) {
+func (l *logger) error(a ...any) {
 	if l.IsEnabled(ERROR) {
 		l.output(&logOption{
 			level:        ERROR,
 			enableCaller: l.enableCaller,
-			content:      fmt.Sprint(a...),
-			fields:       fields,
+			msgType:      msgTypePrint,
+			msgArgs:      a,
 		})
 	}
 }
 
-func (l *logger) errorf(fields []Field, format string, a ...any) {
+func (l *logger) errorf(format string, a ...any) {
 	if l.IsEnabled(ERROR) {
 		l.output(&logOption{
 			level:        ERROR,
 			enableCaller: l.enableCaller,
-			content:      fmt.Sprintf(format, a...),
-			fields:       fields,
+			msgType:      msgTypePrintf,
+			msgArgs:      a,
+			msgOrFormat:  format,
 		})
 	}
 }
 
-func (l *logger) errorw(v any, fields ...Field) {
+func (l *logger) errorw(msg string, fields ...Field) {
 	if l.IsEnabled(ERROR) {
 		l.output(&logOption{
 			level:        ERROR,
 			enableCaller: l.enableCaller,
-			content:      v,
+			msgType:      msgTypePrintMsg,
+			msgOrFormat:  msg,
 			fields:       fields,
 		})
 	}
 }
 
-func (l *logger) warn(fields []Field, a ...any) {
+func (l *logger) warn(a ...any) {
 	if l.IsEnabled(WARN) {
 		l.output(&logOption{
 			level:        WARN,
 			enableCaller: l.enableCaller,
-			content:      fmt.Sprint(a...),
-			fields:       fields,
+			msgType:      msgTypePrint,
+			msgArgs:      a,
 		})
 	}
 }
 
-func (l *logger) warnf(fields []Field, format string, a ...any) {
+func (l *logger) warnf(format string, a ...any) {
 	if l.IsEnabled(WARN) {
 		l.output(&logOption{
 			level:        WARN,
 			enableCaller: l.enableCaller,
-			content:      fmt.Sprintf(format, a...),
-			fields:       fields,
+			msgType:      msgTypePrintf,
+			msgArgs:      a,
+			msgOrFormat:  format,
 		})
 	}
 }
 
-func (l *logger) warnw(v any, fields ...Field) {
+func (l *logger) warnw(msg string, fields ...Field) {
 	if l.IsEnabled(WARN) {
 		l.output(&logOption{
 			level:        WARN,
 			enableCaller: l.enableCaller,
-			content:      v,
+			msgType:      msgTypePrintMsg,
+			msgOrFormat:  msg,
 			fields:       fields,
 		})
 	}
 }
 
-func (l *logger) info(fields []Field, a ...any) {
+func (l *logger) info(a ...any) {
 	if l.IsEnabled(INFO) {
 		l.output(&logOption{
 			level:        INFO,
 			enableCaller: l.enableCaller,
-			content:      fmt.Sprint(a...),
-			fields:       fields,
+			msgType:      msgTypePrint,
+			msgArgs:      a,
 		})
 	}
 }
 
-func (l *logger) infof(fields []Field, format string, a ...any) {
+func (l *logger) infof(format string, a ...any) {
 	if l.IsEnabled(INFO) {
 		l.output(&logOption{
 			level:        INFO,
 			enableCaller: l.enableCaller,
-			content:      fmt.Sprintf(format, a...),
-			fields:       fields,
+			msgType:      msgTypePrintf,
+			msgArgs:      a,
+			msgOrFormat:  format,
 		})
 	}
 }
 
-func (l *logger) infow(v any, fields ...Field) {
+func (l *logger) infow(msg string, fields ...Field) {
 	if l.IsEnabled(INFO) {
 		l.output(&logOption{
 			level:        INFO,
 			enableCaller: l.enableCaller,
-			content:      v,
+			msgType:      msgTypePrintMsg,
+			msgOrFormat:  msg,
 			fields:       fields,
 		})
 	}
 }
 
-func (l *logger) debug(fields []Field, a ...any) {
+func (l *logger) debug(a ...any) {
 	if l.IsEnabled(DEBUG) {
 		l.output(&logOption{
 			level:        DEBUG,
 			enableCaller: l.enableCaller,
-			content:      fmt.Sprint(a...),
-			fields:       fields,
+			msgType:      msgTypePrint,
+			msgArgs:      a,
 		})
 	}
 }
 
-func (l *logger) debugf(fields []Field, format string, a ...any) {
+func (l *logger) debugf(format string, a ...any) {
 	if l.IsEnabled(DEBUG) {
 		l.output(&logOption{
 			level:        DEBUG,
 			enableCaller: l.enableCaller,
-			content:      fmt.Sprintf(format, a...),
-			fields:       fields,
+			msgType:      msgTypePrintf,
+			msgArgs:      a,
+			msgOrFormat:  format,
 		})
 	}
 }
 
-func (l *logger) debugw(v any, fields ...Field) {
+func (l *logger) debugw(msg string, fields ...Field) {
 	if l.IsEnabled(DEBUG) {
 		l.output(&logOption{
 			level:        DEBUG,
 			enableCaller: l.enableCaller,
-			content:      v,
+			msgType:      msgTypePrintMsg,
+			msgOrFormat:  msg,
 			fields:       fields,
 		})
 	}

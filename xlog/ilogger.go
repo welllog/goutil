@@ -4,7 +4,7 @@ package xlog
 type Logger interface {
 	// Log writes a log message with the given content and options.
 	// Users can define their own log methods according to this method, such as ctxLogger.
-	Log(content any, opts ...LogOption)
+	Log(opts ...LogOption)
 
 	// Fatal writes a log message with the FATAL log level and call os.Exit(1).
 	Fatal(args ...any)
@@ -46,9 +46,12 @@ type LogOption func(*logOption)
 
 // logOption is a struct that represents options to use when logging a message.
 type logOption struct {
-	level        Level  // level is the severity level of the log message.
-	enableCaller bool   // enableCaller indicates whether to include caller information in the log message.
-	enableColor  bool   // enableColor indicates whether to enable colorized output for the levelTag on plain encoding.
+	level        Level // level is the severity level of the log message.
+	enableCaller bool  // enableCaller indicates whether to include caller information in the log message.
+	enableColor  bool  // enableColor indicates whether to enable colorized output for the levelTag on plain encoding.
+	msgType      msgType
+	msgArgs      []any
+	msgOrFormat  string
 	callerSkip   int    // callerSkip is the number of stack frames to skip to find the caller information.
 	file         string // file is the file name of the log message.
 	line         int    // line is the line number of the log message.
@@ -58,12 +61,19 @@ type logOption struct {
 	// users can also customize semantic tags, such as slow.
 	levelTag   string
 	timeFormat string
-	content    any     // content is the main content of the log message.
 	fields     []Field // fields is a slice of key-value pairs of additional data to include in the log message.
 }
 
 // defCallerSkip is the default number of stack frames to skip to find the caller information.
 const defCallerSkip = 4
+
+type msgType int8
+
+const (
+	msgTypePrint msgType = iota + 1
+	msgTypePrintf
+	msgTypePrintMsg
+)
 
 // WithLevel returns a LogOption that sets the logging level and the corresponding tag.
 func WithLevel(level Level, levelTag string) LogOption {
@@ -91,6 +101,37 @@ func WithCallerSkip(skip int) LogOption {
 func WithFields(fields ...Field) LogOption {
 	return func(o *logOption) {
 		o.fields = append(o.fields, fields...)
+	}
+}
+
+func WithPrint(args ...any) LogOption {
+	return func(o *logOption) {
+		if o.msgType > 0 {
+			return
+		}
+		o.msgType = msgTypePrint
+		o.msgArgs = args
+	}
+}
+
+func WithPrintf(format string, args ...any) LogOption {
+	return func(o *logOption) {
+		if o.msgType > 0 {
+			return
+		}
+		o.msgType = msgTypePrintf
+		o.msgOrFormat = format
+		o.msgArgs = args
+	}
+}
+
+func WithPrintMsg(msg string) LogOption {
+	return func(o *logOption) {
+		if o.msgType > 0 {
+			return
+		}
+		o.msgType = msgTypePrintMsg
+		o.msgOrFormat = msg
 	}
 }
 

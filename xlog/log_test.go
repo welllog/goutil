@@ -295,9 +295,9 @@ func TestLog(t *testing.T) {
 	initTestLogger()
 	SetCaller(true)
 	SetEncode(PLAIN)
-	Log("test log", WithLevel(INFO, "stat"), WithFields(Field{Key: "name", Value: "bob"}))
-	Log("test log", WithLevel(WARN, "slow"), WithCaller(false))
-	Log("test log", WithLevel(WARN, "slow"), WithCallerSkip(1), WithCallerSkip(-1))
+	Log(WithPrintMsg("test log"), WithLevel(INFO, "stat"), WithFields(Field{Key: "name", Value: "bob"}))
+	Log(WithPrintMsg("test log"), WithLevel(WARN, "slow"), WithCaller(false))
+	Log(WithPrintMsg("test log"), WithLevel(WARN, "slow"), WithCallerSkip(1), WithCallerSkip(-1))
 }
 
 type customLogger struct {
@@ -305,11 +305,11 @@ type customLogger struct {
 }
 
 func (l *customLogger) Slow(a ...any) {
-	l.Log(fmt.Sprint(a...), WithLevel(WARN, "slow"), WithCallerSkipOne)
+	l.Log(WithPrint(a...), WithLevel(WARN, "slow"), WithCallerSkipOne)
 }
 
 func (l *customLogger) Stat(a ...any) {
-	Log(fmt.Sprint(a...), WithLevel(INFO, "stat"), WithCallerSkipOne)
+	Log(WithPrint(a...), WithLevel(INFO, "stat"), WithCallerSkipOne)
 }
 
 func TestWrapLogger(t *testing.T) {
@@ -348,11 +348,12 @@ func BenchmarkInfo(b *testing.B) {
 			for pb.Next() {
 				logger.Print("test")
 				logger.Printf("test %d", 2)
+				logger.Println("test", "name", "bob", "age", 18, "success", true)
 			}
 		})
 	})
 
-	b.Run("xlog", func(b *testing.B) {
+	b.Run("xlog.json", func(b *testing.B) {
 		logger := NewLogger(WithLoggerWriter(NewWriter(discard{})), WithLoggerCaller(false))
 
 		b.ReportAllocs()
@@ -362,12 +363,29 @@ func BenchmarkInfo(b *testing.B) {
 			for pb.Next() {
 				logger.Info("test")
 				logger.Infof("test %d", 2)
+				logger.Infow("test", Field{Key: "name", Value: "bob"}, Field{Key: "age", Value: 18}, Field{Key: "success", Value: true})
 			}
 		})
 	})
 
-	b.Run("xlog.ctx", func(b *testing.B) {
+	b.Run("xlog.plain", func(b *testing.B) {
+		logger := NewLogger(WithLoggerWriter(NewWriter(discard{})), WithLoggerCaller(false), WithLoggerEncode(PLAIN))
+
+		b.ReportAllocs()
+		b.ResetTimer()
+
+		b.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				logger.Info("test")
+				logger.Infof("test %d", 2)
+				logger.Infow("test", Field{Key: "name", Value: "bob"}, Field{Key: "age", Value: 18}, Field{Key: "success", Value: true})
+			}
+		})
+	})
+
+	b.Run("xlog.ctx.json", func(b *testing.B) {
 		logger := NewLogger(WithLoggerWriter(NewWriter(discard{})), WithLoggerCaller(false))
+		logger = WithContext(logger, context.Background())
 		logger = WithContext(logger, context.Background())
 
 		b.ReportAllocs()
@@ -377,12 +395,30 @@ func BenchmarkInfo(b *testing.B) {
 			for pb.Next() {
 				logger.Info("test")
 				logger.Infof("test %d", 2)
+				logger.Infow("test", Field{Key: "name", Value: "bob"}, Field{Key: "age", Value: 18}, Field{Key: "success", Value: true})
+			}
+		})
+	})
+
+	b.Run("xlog.ctx.plain", func(b *testing.B) {
+		logger := NewLogger(WithLoggerWriter(NewWriter(discard{})), WithLoggerCaller(false), WithLoggerEncode(PLAIN))
+		logger = WithContext(logger, context.Background())
+		logger = WithContext(logger, context.Background())
+
+		b.ReportAllocs()
+		b.ResetTimer()
+
+		b.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				logger.Info("test")
+				logger.Infof("test %d", 2)
+				logger.Infow("test", Field{Key: "name", Value: "bob"}, Field{Key: "age", Value: 18}, Field{Key: "success", Value: true})
 			}
 		})
 	})
 }
 
-func BenchmarkSingleInfo(b *testing.B) {
+func BenchmarkWithCallerSimpleInfo(b *testing.B) {
 	b.Run("std.logger", func(b *testing.B) {
 		logger := log.New(discard{}, "", log.Ldate|log.Ltime|log.Lshortfile)
 
@@ -392,10 +428,11 @@ func BenchmarkSingleInfo(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			logger.Print("test")
 			logger.Printf("test %d", 2)
+			logger.Println("test", "name", "bob", "age", 18, "success", true)
 		}
 	})
 
-	b.Run("xlog", func(b *testing.B) {
+	b.Run("xlog.json", func(b *testing.B) {
 		logger := NewLogger(WithLoggerWriter(NewWriter(discard{})))
 
 		b.ReportAllocs()
@@ -404,11 +441,26 @@ func BenchmarkSingleInfo(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			logger.Info("test")
 			logger.Infof("test %d", 2)
+			logger.Infow("test", Field{Key: "name", Value: "bob"}, Field{Key: "age", Value: 18}, Field{Key: "success", Value: true})
 		}
 	})
 
-	b.Run("xlog.ctx", func(b *testing.B) {
+	b.Run("xlog.plain", func(b *testing.B) {
+		logger := NewLogger(WithLoggerWriter(NewWriter(discard{})), WithLoggerEncode(PLAIN))
+
+		b.ReportAllocs()
+		b.ResetTimer()
+
+		for i := 0; i < b.N; i++ {
+			logger.Info("test")
+			logger.Infof("test %d", 2)
+			logger.Infow("test", Field{Key: "name", Value: "bob"}, Field{Key: "age", Value: 18}, Field{Key: "success", Value: true})
+		}
+	})
+
+	b.Run("xlog.ctx.json", func(b *testing.B) {
 		logger := NewLogger(WithLoggerWriter(NewWriter(discard{})))
+		logger = WithContext(logger, context.Background())
 		logger = WithContext(logger, context.Background())
 
 		b.ReportAllocs()
@@ -417,6 +469,22 @@ func BenchmarkSingleInfo(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			logger.Info("test")
 			logger.Infof("test %d", 2)
+			logger.Infow("test", Field{Key: "name", Value: "bob"}, Field{Key: "age", Value: 18}, Field{Key: "success", Value: true})
+		}
+	})
+
+	b.Run("xlog.ctx.plain", func(b *testing.B) {
+		logger := NewLogger(WithLoggerWriter(NewWriter(discard{})), WithLoggerEncode(PLAIN))
+		logger = WithContext(logger, context.Background())
+		logger = WithContext(logger, context.Background())
+
+		b.ReportAllocs()
+		b.ResetTimer()
+
+		for i := 0; i < b.N; i++ {
+			logger.Info("test")
+			logger.Infof("test %d", 2)
+			logger.Infow("test", Field{Key: "name", Value: "bob"}, Field{Key: "age", Value: 18}, Field{Key: "success", Value: true})
 		}
 	})
 }

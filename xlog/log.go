@@ -1,7 +1,6 @@
 package xlog
 
 import (
-	"fmt"
 	"sync/atomic"
 	"unsafe"
 )
@@ -79,34 +78,34 @@ func SetWriter(w Writer) {
 // The content is of any type and can be any loggable object, such as a string or a struct.
 // The options are optional and can be used to customize the log entry.
 // This function delegates to the Log method of the default logger instance.
-func Log(content any, opts ...LogOption) {
+func Log(opts ...LogOption) {
 	opts = append(opts, WithCallerSkipOne)
-	getDefLogger().Log(content, opts...)
+	getDefLogger().Log(opts...)
 }
 
 // Fatal logs a message at fatal level and exits the program with an error status.
 func Fatal(a ...any) {
-	getDefLogger().fatalf(fmt.Sprint(a...))
+	getDefLogger().fatal(a...)
 }
 
 // Fatalf logs a formatted message at fatal level and exits the program with an error status.
 func Fatalf(format string, a ...any) {
-	getDefLogger().fatalf(fmt.Sprintf(format, a...))
+	getDefLogger().fatalf(format, a...)
 }
 
 // Fatalw logs a message with extra fields at fatal level and exits the program with an error status.
 func Fatalw(msg string, fields ...Field) {
-	getDefLogger().fatalf(msg, fields...)
+	getDefLogger().fatalw(msg, fields...)
 }
 
 // Error logs a message at error level.
 func Error(a ...any) {
-	getDefLogger().error(nil, a...)
+	getDefLogger().error(a...)
 }
 
 // Errorf logs a formatted message at error level.
 func Errorf(format string, a ...any) {
-	getDefLogger().errorf(nil, format, a...)
+	getDefLogger().errorf(format, a...)
 }
 
 // Errorw logs a message with extra fields at error level.
@@ -116,12 +115,12 @@ func Errorw(msg string, fields ...Field) {
 
 // Warn logs a message at warning level.
 func Warn(a ...any) {
-	getDefLogger().warn(nil, a...)
+	getDefLogger().warn(a...)
 }
 
 // Warnf logs a formatted message at warning level.
 func Warnf(format string, a ...any) {
-	getDefLogger().warnf(nil, format, a...)
+	getDefLogger().warnf(format, a...)
 }
 
 // Warnw logs a message with extra fields at warning level.
@@ -131,12 +130,12 @@ func Warnw(msg string, fields ...Field) {
 
 // Info logs a message at info level.
 func Info(a ...any) {
-	getDefLogger().info(nil, a...)
+	getDefLogger().info(a...)
 }
 
 // Infof logs a formatted message at info level.
 func Infof(format string, a ...any) {
-	getDefLogger().infof(nil, format, a...)
+	getDefLogger().infof(format, a...)
 }
 
 // Infow logs a message with extra fields at info level.
@@ -146,12 +145,12 @@ func Infow(msg string, fields ...Field) {
 
 // Debug logs a message at debug level.
 func Debug(a ...any) {
-	getDefLogger().debug(nil, a...)
+	getDefLogger().debug(a...)
 }
 
 // Debugf logs a formatted message at debug level.
 func Debugf(format string, a ...any) {
-	getDefLogger().debugf(nil, format, a...)
+	getDefLogger().debugf(format, a...)
 }
 
 // Debugw logs a message with extra fields at debug level.
