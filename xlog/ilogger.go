@@ -2,9 +2,9 @@ package xlog
 
 // Logger is an interface that defines the methods for logging.
 type Logger interface {
-	// Log writes a log message with the given content and options.
-	// Users can define their own log methods according to this method, such as ctxLogger.
-	Log(opts ...LogOption)
+	// Log writes a log message with the given level and options.
+	// Users can define their own log methods according to this method.
+	Log(level Level, opts ...LogOption)
 
 	// Fatal writes a log message with the FATAL log level and call os.Exit(1).
 	Fatal(args ...any)
@@ -33,6 +33,9 @@ type Logger interface {
 
 	// IsEnabled returns whether the given log level is enabled or not.
 	IsEnabled(level Level) bool
+
+	log(level Level, opts ...LogOption)
+	buildFields(fields ...Field) []Field
 }
 
 // Field is a struct that represents a key-value pair of additional data to include in a log message.
@@ -56,10 +59,10 @@ type logOption struct {
 	file         string // file is the file name of the log message.
 	line         int    // line is the line number of the log message.
 
-	// levelTag is the string representation of the severity level
+	// tag is the string representation of the severity level
 	// The default debug, info, warn, error, and fatal correspond to DEBUG, INFO, WARN, ERROR, and FATAL log levels respectively
 	// users can also customize semantic tags, such as slow.
-	levelTag   string
+	tag        string
 	timeFormat string
 	fields     []Field // fields is a slice of key-value pairs of additional data to include in the log message.
 }
@@ -75,11 +78,9 @@ const (
 	msgTypePrintMsg
 )
 
-// WithLevel returns a LogOption that sets the logging level and the corresponding tag.
-func WithLevel(level Level, levelTag string) LogOption {
+func WithTag(tag string) LogOption {
 	return func(o *logOption) {
-		o.level = level
-		o.levelTag = levelTag
+		o.tag = tag
 	}
 }
 
@@ -143,26 +144,6 @@ func WithCallerSkipOne(o *logOption) {
 // WithCallerSkipTwo is a LogOption that increments the number of stack frames to skip by 2 when logging caller information.
 func WithCallerSkipTwo(o *logOption) {
 	o.callerSkip += 2
-}
-
-func withFatal(o *logOption) {
-	o.level = FATAL
-}
-
-func withError(o *logOption) {
-	o.level = ERROR
-}
-
-func withWarn(o *logOption) {
-	o.level = WARN
-}
-
-func withInfo(o *logOption) {
-	o.level = INFO
-}
-
-func withDebug(o *logOption) {
-	o.level = DEBUG
 }
 
 var (

@@ -27,7 +27,7 @@ func jsonEncode(o *logOption, w Writer) {
 	_, _ = buf.WriteString(`{"@timestamp":"`)
 	buf.ResetBuffer(time.Now().AppendFormat(buf.Bytes(), o.timeFormat))
 	_, _ = buf.WriteString(`","level":"`)
-	_, _ = buf.WriteString(o.levelTag)
+	_, _ = buf.WriteString(o.tag)
 	if o.enableCaller {
 		_, _ = buf.WriteString(`","caller":"`)
 		_, _ = buf.WriteString(o.file)
@@ -76,9 +76,9 @@ func plainEncode(o *logOption, w Writer) {
 	buf.ResetBuffer(time.Now().AppendFormat(buf.Bytes(), o.timeFormat))
 	_ = buf.WriteByte(sep)
 	if o.enableColor {
-		writeLevelWithColor(o.level, o.levelTag, buf)
+		writeLevelWithColor(o.level, o.tag, buf)
 	} else {
-		_, _ = buf.WriteString(o.levelTag)
+		_, _ = buf.WriteString(o.tag)
 	}
 	_ = buf.WriteByte(sep)
 	if o.enableCaller {
@@ -165,7 +165,11 @@ func writeJsonValue(value any, buf *Buffer, quote bool) {
 		buf.ResetBuffer(strconv.AppendBool(buf.Bytes(), v))
 	default:
 		if quote {
-			buf.ResetBuffer(strconv.AppendQuote(buf.Bytes(), fmt.Sprintf("%+v", value)))
+			l := len(buf.buf)
+			buf.ResetBuffer(fmt.Appendf(buf.Bytes(), "%+v", value))
+			quoteStr := string(buf.buf[l:])
+			buf.buf = buf.buf[:l]
+			buf.ResetBuffer(strconv.AppendQuote(buf.Bytes(), quoteStr))
 			return
 		}
 		buf.ResetBuffer(fmt.Appendf(buf.Bytes(), "%+v", value))

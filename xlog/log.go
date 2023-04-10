@@ -74,13 +74,11 @@ func SetWriter(w Writer) {
 	setDefLogger(l)
 }
 
-// Log writes a log entry with the given content and options to the default logger.
-// The content is of any type and can be any loggable object, such as a string or a struct.
+// Log writes a log entry with the given level and options to the default logger.
 // The options are optional and can be used to customize the log entry.
 // This function delegates to the Log method of the default logger instance.
-func Log(opts ...LogOption) {
-	opts = append(opts, WithCallerSkipOne)
-	getDefLogger().Log(opts...)
+func Log(level Level, opts ...LogOption) {
+	getDefLogger().log(level, opts...)
 }
 
 // Fatal logs a message at fatal level and exits the program with an error status.

@@ -85,20 +85,8 @@ func WithLoggerWriter(w Writer) LoggerOption {
 	}
 }
 
-func (l *logger) Log(opts ...LogOption) {
-	o := logOption{
-		enableCaller: l.enableCaller,
-		callerSkip:   defCallerSkip - 1,
-	}
-	for _, opt := range opts {
-		opt(&o)
-	}
-	if l.IsEnabled(o.level) {
-		l.output(&o)
-	}
-	if o.level == FATAL {
-		os.Exit(1)
-	}
+func (l *logger) Log(level Level, opts ...LogOption) {
+	l.log(level, opts...)
 }
 
 func (l *logger) Fatal(a ...any) {
@@ -159,6 +147,28 @@ func (l *logger) Debugf(format string, a ...any) {
 
 func (l *logger) Debugw(msg string, fields ...Field) {
 	l.debugw(msg, fields...)
+}
+
+func (l *logger) IsEnabled(level Level) bool {
+	return level >= l.level
+}
+
+func (l *logger) log(level Level, opts ...LogOption) {
+	if l.IsEnabled(level) {
+		o := logOption{
+			level:        level,
+			enableCaller: l.enableCaller,
+			callerSkip:   defCallerSkip,
+		}
+		for _, opt := range opts {
+			opt(&o)
+		}
+		l.output(&o)
+	}
+
+	if level == FATAL {
+		os.Exit(1)
+	}
 }
 
 func (l *logger) fatal(a ...any) {
@@ -333,13 +343,13 @@ func (l *logger) debugw(msg string, fields ...Field) {
 	}
 }
 
-func (l *logger) IsEnabled(level Level) bool {
-	return level >= l.level
+func (l *logger) buildFields(fields ...Field) []Field {
+	return fields
 }
 
 func (l *logger) output(o *logOption) {
-	if o.levelTag == "" {
-		o.levelTag = o.level.String()
+	if o.tag == "" {
+		o.tag = o.level.String()
 	}
 	if o.enableCaller {
 		if o.callerSkip <= 0 {

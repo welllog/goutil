@@ -231,5 +231,5 @@ func TestWithContext(t *testing.T) {
 
 	l = WithContext(l, context.WithValue(context.Background(), "name", "linda"))
 	l.Debug("test override name")
-	l.Log(WithPrintMsg("test log"), WithLevel(DEBUG, "trace"))
+	l.Log(DEBUG, WithPrintMsg("test log"), WithTag("trace"))
 }

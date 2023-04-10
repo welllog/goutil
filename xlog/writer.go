@@ -9,6 +9,8 @@ import (
 var csWriter = NewConsoleWriter()
 
 // Writer is an interface that defines a Write method with a Level and a byte slice as its parameters and returns an integer and an error
+// Special attention must be paid to the fact that p []byte should not exceed the scope of the Write method.
+// After the Write method ends, the byte slice should not be used, otherwise will cause memory data errors.
 type Writer interface {
 	Write(level Level, p []byte) (n int, err error)
 }
@@ -46,6 +48,8 @@ func NewConsoleWriter() Writer {
 }
 
 // NewWriter is a function that creates a new customWriter with the specified writer as its parameter
+// Special attention must be paid to the fact that []byte should not exceed the scope of the Write method.
+// After the Write method ends, the byte slice should not be used, otherwise will cause memory data errors.
 func NewWriter(w io.Writer) Writer {
 	return &customWriter{
 		w: w,

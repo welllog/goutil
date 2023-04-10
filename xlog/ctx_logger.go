@@ -38,98 +38,100 @@ func WithEntries(logger Logger, entries map[string]any) Logger {
 	}
 }
 
-func (c ctxLogger) Log(opts ...LogOption) {
-	opts = append(opts, WithCallerSkipOne, WithFields(c.buildFields()...))
-	c.Logger.Log(opts...)
+func (c ctxLogger) Log(level Level, opts ...LogOption) {
+	if c.IsEnabled(level) {
+		opts = append(opts, WithFields(c.buildFields()...))
+		c.log(level, opts...)
+	}
 }
 
 func (c ctxLogger) Fatal(a ...any) {
 	if c.IsEnabled(FATAL) {
-		c.Logger.Log(WithPrint(a...), withFatal, WithCallerSkipOne, WithFields(c.buildFields()...))
+		c.log(FATAL, WithPrint(a...), WithFields(c.buildFields()...))
 	}
 }
 
 func (c ctxLogger) Fatalf(format string, a ...any) {
 	if c.IsEnabled(FATAL) {
-		c.Logger.Log(WithPrintf(format, a...), withFatal, WithCallerSkipOne, WithFields(c.buildFields()...))
+		c.log(FATAL, WithPrintf(format, a...), WithFields(c.buildFields()...))
 	}
 }
 
 func (c ctxLogger) Fatalw(msg string, fields ...Field) {
 	if c.IsEnabled(FATAL) {
-		c.Logger.Log(WithPrintMsg(msg), withFatal, WithCallerSkipOne, WithFields(c.buildFields(fields...)...))
+		c.log(FATAL, WithPrintMsg(msg), WithFields(c.buildFields(fields...)...))
 	}
 }
 
 func (c ctxLogger) Error(a ...any) {
 	if c.IsEnabled(ERROR) {
-		c.Logger.Log(WithPrint(a...), withError, WithCallerSkipOne, WithFields(c.buildFields()...))
+		c.log(ERROR, WithPrint(a...), WithFields(c.buildFields()...))
 	}
 }
 
 func (c ctxLogger) Errorf(format string, a ...any) {
 	if c.IsEnabled(ERROR) {
-		c.Logger.Log(WithPrintf(format, a...), withError, WithCallerSkipOne, WithFields(c.buildFields()...))
+		c.log(ERROR, WithPrintf(format, a...), WithFields(c.buildFields()...))
 	}
 }
 
 func (c ctxLogger) Errorw(msg string, fields ...Field) {
 	if c.IsEnabled(ERROR) {
-		c.Logger.Log(WithPrintMsg(msg), withError, WithCallerSkipOne, WithFields(c.buildFields(fields...)...))
+		c.log(ERROR, WithPrintMsg(msg), WithFields(c.buildFields(fields...)...))
 	}
 }
 
 func (c ctxLogger) Warn(a ...any) {
 	if c.IsEnabled(WARN) {
-		c.Logger.Log(WithPrint(a...), withWarn, WithCallerSkipOne, WithFields(c.buildFields()...))
+		c.log(WARN, WithPrint(a...), WithFields(c.buildFields()...))
 	}
 }
 
 func (c ctxLogger) Warnf(format string, a ...any) {
 	if c.IsEnabled(WARN) {
-		c.Logger.Log(WithPrintf(format, a...), withWarn, WithCallerSkipOne, WithFields(c.buildFields()...))
+		c.log(WARN, WithPrintf(format, a...), WithFields(c.buildFields()...))
 	}
 }
 
 func (c ctxLogger) Warnw(msg string, fields ...Field) {
 	if c.IsEnabled(WARN) {
-		c.Logger.Log(WithPrintMsg(msg), withWarn, WithCallerSkipOne, WithFields(c.buildFields(fields...)...))
+		c.log(WARN, WithPrintMsg(msg), WithFields(c.buildFields(fields...)...))
 	}
 }
 
 func (c ctxLogger) Info(a ...any) {
 	if c.IsEnabled(INFO) {
-		c.Logger.Log(WithPrint(a...), withInfo, WithCallerSkipOne, WithFields(c.buildFields()...))
+		c.log(INFO, WithPrint(a...), WithFields(c.buildFields()...))
 	}
 }
 
 func (c ctxLogger) Infof(format string, a ...any) {
 	if c.IsEnabled(INFO) {
-		c.Logger.Log(WithPrintf(format, a...), withInfo, WithCallerSkipOne, WithFields(c.buildFields()...))
+		c.log(INFO, WithPrintf(format, a...), WithFields(c.buildFields()...))
 	}
 }
 
 func (c ctxLogger) Infow(msg string, fields ...Field) {
 	if c.IsEnabled(INFO) {
-		c.Logger.Log(WithPrintMsg(msg), withInfo, WithCallerSkipOne, WithFields(c.buildFields(fields...)...))
+		c.log(INFO, WithPrintMsg(msg), WithFields(c.buildFields(fields...)...))
 	}
 }
 
 func (c ctxLogger) Debug(a ...any) {
 	if c.IsEnabled(DEBUG) {
-		c.Logger.Log(WithPrint(a...), withDebug, WithCallerSkipOne, WithFields(c.buildFields()...))
+		c.log(DEBUG, WithPrint(a...), WithFields(c.buildFields()...))
 	}
 }
 
 func (c ctxLogger) Debugf(format string, a ...any) {
 	if c.IsEnabled(DEBUG) {
-		c.Logger.Log(WithPrintf(format, a...), withDebug, WithCallerSkipOne, WithFields(c.buildFields()...))
+		c.log(DEBUG, WithPrintf(format, a...), WithFields(c.buildFields()...))
 	}
 }
 
 func (c ctxLogger) Debugw(msg string, fields ...Field) {
 	if c.IsEnabled(DEBUG) {
-		c.Logger.Log(WithPrintMsg(msg), withDebug, WithCallerSkipOne, WithFields(c.buildFields(fields...)...))
+		c.log(DEBUG, WithPrintMsg(msg), WithFields(c.buildFields(fields...)...))
 	}
 }
 
@@ -146,5 +148,5 @@ func (c ctxLogger) buildFields(fields ...Field) []Field {
 			fields = append(fields, Field{Key: key, Value: entry})
 		}
 	}
-	return fields
+	return c.Logger.buildFields(fields...)
 }

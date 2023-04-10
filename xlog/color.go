@@ -17,10 +17,10 @@ const (
 	White     = "\033[97m"
 )
 
-// writeLevelWithColor takes in a level of logging and a levelTag string, and returns a string that
-// contains the levelTag string wrapped with an ANSI color code to represent the level of logging.
+// writeLevelWithColor takes in a level of logging and a tag string, and returns a string that
+// contains the tag string wrapped with an ANSI color code to represent the level of logging.
 // The returned string will have different colors depending on the level of logging.
-func writeLevelWithColor(level Level, levelTag string, buf *Buffer) {
+func writeLevelWithColor(level Level, tag string, buf *Buffer) {
 	switch level {
 	case FATAL:
 		_, _ = buf.WriteString(RedBold)
@@ -33,9 +33,9 @@ func writeLevelWithColor(level Level, levelTag string, buf *Buffer) {
 	case DEBUG:
 		_, _ = buf.WriteString(Gray)
 	default:
-		_, _ = buf.WriteString(levelTag)
+		_, _ = buf.WriteString(tag)
 		return
 	}
-	_, _ = buf.WriteString(levelTag)
+	_, _ = buf.WriteString(tag)
 	_, _ = buf.WriteString(Reset)
 }

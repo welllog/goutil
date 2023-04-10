@@ -295,9 +295,9 @@ func TestLog(t *testing.T) {
 	initTestLogger()
 	SetCaller(true)
 	SetEncode(PLAIN)
-	Log(WithPrintMsg("test log"), WithLevel(INFO, "stat"), WithFields(Field{Key: "name", Value: "bob"}))
-	Log(WithPrintMsg("test log"), WithLevel(WARN, "slow"), WithCaller(false))
-	Log(WithPrintMsg("test log"), WithLevel(WARN, "slow"), WithCallerSkip(1), WithCallerSkip(-1))
+	Log(INFO, WithPrintMsg("test log"), WithTag("stat"), WithFields(Field{Key: "name", Value: "bob"}))
+	Log(WARN, WithPrintMsg("test log"), WithTag("slow"), WithCaller(false))
+	Log(WARN, WithPrintMsg("test log"), WithTag("slow"), WithCallerSkip(1), WithCallerSkip(-1))
 }
 
 type customLogger struct {
@@ -305,11 +305,11 @@ type customLogger struct {
 }
 
 func (l *customLogger) Slow(a ...any) {
-	l.Log(WithPrint(a...), WithLevel(WARN, "slow"), WithCallerSkipOne)
+	l.Log(WARN, WithPrint(a...), WithTag("slow"), WithCallerSkipOne)
 }
 
 func (l *customLogger) Stat(a ...any) {
-	Log(WithPrint(a...), WithLevel(INFO, "stat"), WithCallerSkipOne)
+	Log(INFO, WithPrint(a...), WithTag("stat"), WithCallerSkipOne)
 }
 
 func TestWrapLogger(t *testing.T) {

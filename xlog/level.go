@@ -14,20 +14,20 @@ const (
 
 // Define string representations of each log level.
 const (
-	levelDebug = "debug"
-	levelInfo  = "info"
-	levelWarn  = "warn"
-	levelError = "error"
-	levelFatal = "fatal"
+	tagDebug = "debug"
+	tagInfo  = "info"
+	tagWarn  = "warn"
+	tagError = "error"
+	tagFatal = "fatal"
 )
 
 // Define a mapping from Level values to their corresponding string representations.
 var levelToStr = map[Level]string{
-	DEBUG: levelDebug,
-	INFO:  levelInfo,
-	WARN:  levelWarn,
-	ERROR: levelError,
-	FATAL: levelFatal,
+	DEBUG: tagDebug,
+	INFO:  tagInfo,
+	WARN:  tagWarn,
+	ERROR: tagError,
+	FATAL: tagFatal,
 }
 
 // String returns the string representation of the Level value.
