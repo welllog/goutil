@@ -49,15 +49,15 @@ type LogOption func(*logOption)
 
 // logOption is a struct that represents options to use when logging a message.
 type logOption struct {
-	level        Level // level is the severity level of the log message.
-	enableCaller bool  // enableCaller indicates whether to include caller information in the log message.
-	enableColor  bool  // enableColor indicates whether to enable colorized output for the levelTag on plain encoding.
-	msgType      msgType
-	msgArgs      []any
-	msgOrFormat  string
-	callerSkip   int    // callerSkip is the number of stack frames to skip to find the caller information.
-	file         string // file is the file name of the log message.
-	line         int    // line is the line number of the log message.
+	level        Level   // level is the severity level of the log message.
+	enableCaller bool    // enableCaller indicates whether to include caller information in the log message.
+	enableColor  bool    // enableColor indicates whether to enable colorized output for the levelTag on plain encoding.
+	msgType      msgType // msgType is the type of the log message.
+	msgArgs      []any   // msgArgs is a slice of arguments to the log message.
+	msgOrFormat  string  // msgOrFormat is the format string of the log message.
+	callerSkip   int     // callerSkip is the number of stack frames to skip to find the caller information.
+	file         string  // file is the file name of the log message.
+	line         int     // line is the line number of the log message.
 
 	// tag is the string representation of the severity level
 	// The default debug, info, warn, error, and fatal correspond to DEBUG, INFO, WARN, ERROR, and FATAL log levels respectively
@@ -105,6 +105,7 @@ func WithFields(fields ...Field) LogOption {
 	}
 }
 
+// WithPrint returns a LogOption that sets the type of the log message to print.
 func WithPrint(args ...any) LogOption {
 	return func(o *logOption) {
 		if o.msgType > 0 {
@@ -115,6 +116,7 @@ func WithPrint(args ...any) LogOption {
 	}
 }
 
+// WithPrintf returns a LogOption that sets the type of the log message to print.
 func WithPrintf(format string, args ...any) LogOption {
 	return func(o *logOption) {
 		if o.msgType > 0 {
@@ -126,6 +128,7 @@ func WithPrintf(format string, args ...any) LogOption {
 	}
 }
 
+// WithPrintMsg returns a LogOption that sets the type of the log message to print.
 func WithPrintMsg(msg string) LogOption {
 	return func(o *logOption) {
 		if o.msgType > 0 {
