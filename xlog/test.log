@@ -1,6 +1,0 @@
-	[37mdebug[0m	xlog/log_test.go:333	t1t2
-	[32minfo[0m	xlog/log_test.go:335	t3t4
-	[33mwarn[0m	xlog/log_test.go:337	t5	name	bob	age	18
-	debug	xlog/log_test.go:333	t1t2
-	info	xlog/log_test.go:335	t3t4
-	warn	xlog/log_test.go:337	t5	name	bob	age	18
