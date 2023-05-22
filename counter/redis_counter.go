@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 )
 
 var _incrCmd = redis.NewScript(`local a=redis.call('INCRBY',KEYS[1],ARGV[1]);if a==tonumber(ARGV[1]) then redis.call('EXPIRE',KEYS[1],ARGV[2]) end;return a`)

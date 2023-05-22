@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 )
 
 // --入参： 1令牌桶容量 2一定时间令牌填充个数  3填充时间段  4获取令牌个数

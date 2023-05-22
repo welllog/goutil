@@ -13,4 +13,3 @@ packages:
   * counter: counter functions
   * structtag: struct tag related functions
   * xlock: lock related functions
-  * ~~xlog: a simple logger~~(migrate to github.com/welllog/olog)

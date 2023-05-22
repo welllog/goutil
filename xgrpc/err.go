@@ -5,9 +5,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/golang/protobuf/proto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const contentType = "application/json; charset=utf-8"
@@ -83,7 +84,7 @@ func (h *Error) Code() codes.Code {
 func (h *Error) GRPCStatus() *status.Status {
 	st := status.New(codes.Code(h.errCode), h.errMsg)
 	if h.data != nil {
-		nst, err := st.WithDetails(h.data)
+		nst, err := st.WithDetails(protoimpl.X.ProtoMessageV1Of(h.data))
 		if err == nil {
 			return nst
 		}
