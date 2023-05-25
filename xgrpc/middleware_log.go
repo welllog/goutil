@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime"
 	"net/http"
 	"runtime"
@@ -151,7 +150,7 @@ func getBody(req *http.Request) (body string, err error) {
 		}
 		_ = req.Body.Close()
 		body = strings.ReplaceAll(string(b), "\"", "'") // 替换双引号，防止日志抓取错误
-		req.Body = ioutil.NopCloser(bytes.NewBuffer(b))
+		req.Body = io.NopCloser(bytes.NewBuffer(b))
 	}
 	return
 }

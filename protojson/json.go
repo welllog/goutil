@@ -6,6 +6,7 @@ import (
 	"math/bits"
 	"strconv"
 	"strings"
+	"sync"
 	"unicode/utf8"
 )
 
@@ -22,6 +23,8 @@ const (
 	arrayClose
 )
 
+var encoderPool sync.Pool
+
 // Encoder provides methods to write out JSON constructs and values. The user is
 // responsible for producing valid sequences of JSON constructs and values.
 type Encoder struct {
@@ -31,19 +34,24 @@ type Encoder struct {
 	out      []byte
 }
 
-// NewEncoder returns an Encoder.
-//
-// If indent is a non-empty string, it causes every entry for an Array or Object
-// to be preceded by the indent and trailed by a newline.
-func NewEncoder(indent string) (*Encoder, error) {
-	e := &Encoder{}
-	if len(indent) > 0 {
-		if strings.Trim(indent, " \t") != "" {
-			return nil, errors.New("proto: indent may only be composed of space or tab characters")
-		}
-		e.indent = indent
+// newEncoder returns a new encoder with the given indent string.
+func newEncoder(indent string) *Encoder {
+	if len(indent) > 0 && strings.Trim(indent, " \t") != "" {
+		// indent may only be composed of space or tab characters
+		indent = ""
 	}
-	return e, nil
+	v := encoderPool.Get()
+	if v == nil {
+		return &Encoder{indent: indent}
+	}
+
+	e := v.(*Encoder)
+	e.indent = indent
+	e.lastKind = 0
+	e.indents = e.indents[:0]
+	e.out = e.out[:0]
+
+	return e
 }
 
 // Bytes returns the content of the written bytes.

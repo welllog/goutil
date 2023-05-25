@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+option go_package = "github.com/welllog/goutil/protojson";
+
+import "google/protobuf/any.proto";
+import "ext.proto";
+
+message HelloRequest {
+  bool success = 1;
+  float score = 2;
+  int32 age = 3;
+  int64 timestamp = 4;
+  bytes data = 6;
+  repeated string tags = 7;
+  map<string, string> labels = 8;
+  google.protobuf.Any any = 9;
+}
+
+message Person {
+  string name = 1 [(sens) = true];
+  string like = 2;
+  int32 age = 3;
+}
+

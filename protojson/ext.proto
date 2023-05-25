@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+option go_package = "github.com/welllog/goutil/protojson";
+
+import "google/protobuf/descriptor.proto";
+
+extend google.protobuf.FieldOptions {
+  bool sens = 20000;
+}

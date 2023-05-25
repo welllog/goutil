@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"io"
 
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -40,11 +41,6 @@ type MarshalOptions struct {
 	// terminated by a newline. If non-empty, then Multiline is treated as true.
 	// Indent can only be composed of space or tab characters.
 	Indent string
-
-	// AllowPartial allows messages that have missing required fields to marshal
-	// without returning an error. If AllowPartial is false (the default),
-	// Marshal will return error if there are any missing required fields.
-	AllowPartial bool
 
 	// UseProtoNames uses proto field name instead of lowerCamelCase name in JSON
 	// field names.
@@ -86,7 +82,6 @@ func (o MarshalOptions) Format(m proto.Message) string {
 	if m == nil || !m.ProtoReflect().IsValid() {
 		return "<nil>" // invalid syntax, but okay since this is for debugging
 	}
-	o.AllowPartial = true
 	b, _ := o.Marshal(m)
 	return string(b)
 }
@@ -96,12 +91,32 @@ func (o MarshalOptions) Marshal(m proto.Message) ([]byte, error) {
 	return o.marshal(m)
 }
 
-// marshal is a centralized function that all marshal operations go through.
-// For profiling purposes, avoid changing the name of this function or
-// introducing other code paths for marshal that do not go through this.
+func (o MarshalOptions) MarshalTo(m proto.Message, w io.Writer) error {
+	if m == nil {
+		_, _ = w.Write([]byte("{}"))
+		return nil
+	}
+
+	if o.Multiline && o.Indent == "" {
+		o.Indent = defaultIndent
+	}
+	if o.Resolver == nil {
+		o.Resolver = protoregistry.GlobalTypes
+	}
+
+	internalEnc := newEncoder(o.Indent)
+	defer encoderPool.Put(internalEnc)
+
+	enc := encoder{internalEnc, o}
+	if err := enc.marshalMessage(m.ProtoReflect()); err != nil {
+		return err
+	}
+
+	_, _ = w.Write(internalEnc.Bytes())
+	return nil
+}
+
 func (o MarshalOptions) marshal(m proto.Message) ([]byte, error) {
-	// Treat nil message interface as an empty message,
-	// in which case the output in an empty JSON object.
 	if m == nil {
 		return []byte("{}"), nil
 	}
@@ -113,19 +128,16 @@ func (o MarshalOptions) marshal(m proto.Message) ([]byte, error) {
 		o.Resolver = protoregistry.GlobalTypes
 	}
 
-	internalEnc, err := NewEncoder(o.Indent)
-	if err != nil {
-		return nil, err
-	}
+	internalEnc := newEncoder(o.Indent)
+	defer encoderPool.Put(internalEnc)
 
 	enc := encoder{internalEnc, o}
 	if err := enc.marshalMessage(m.ProtoReflect()); err != nil {
 		return nil, err
 	}
-	if o.AllowPartial {
-		return enc.Bytes(), nil
-	}
-	return enc.Bytes(), proto.CheckInitialized(m)
+
+	buf := append([]byte(nil), internalEnc.Bytes()...)
+	return buf, nil
 }
 
 type encoder struct {
