@@ -90,10 +90,16 @@ func TestSubstr(t *testing.T) {
 	}{
 		{"test", 0, 2, "te"},
 		{"test", 10, 5, ""},
+		{"test", 3, 5, "t"},
 		{"test", 2, 1, "s"},
 		{"test", 1, -1, "est"},
 		{"测试case", 1, 2, "试c"},
 		{"测试case", 1, 10, "试case"},
+		{"测试case", 5, 10, "e"},
+		{"测试case", 5, -1, "e"},
+		{"测试case", 5, 1, "e"},
+		{"测试case", 6, 0, ""},
+		{"测试case", 6, -1, ""},
 		{"测试&案例1 33", 2, 5, "&案例1 "},
 	}
 	for _, tt := range tests {

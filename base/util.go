@@ -113,38 +113,37 @@ func StrLen(s string) int {
 }
 
 func Substr(s string, start, length int) string {
-	if start < 0 || length < -1 {
+	if start < 0 || length < -1 || s == "" {
 		return s
 	}
 
-	if s == "" || length == 0 {
+	if length == 0 {
 		return ""
 	}
 
-	var begin, count, idx int
-	for i, v := range s {
-		if count > 0 {
-			count++
-			if count >= length {
-				return s[begin : i+runeLen(v)]
-			}
-		} else if idx == start {
+	begin, count := -1, 0
+	for i := 0; i < len(s); {
+		if count == start {
 			if length == -1 {
 				return s[i:]
 			}
 			begin = i
-			count++
-			if count >= length {
-				return s[begin : begin+runeLen(v)]
-			}
+		} else if begin >= 0 && start+length == count {
+			return s[begin:i]
 		}
-		idx++
+
+		if bt := s[i]; bt < utf8.RuneSelf {
+			i++
+		} else {
+			_, size := utf8.DecodeRuneInString(s[i:])
+			i += size
+		}
+		count++
 	}
 
-	if count == 0 {
+	if begin < 0 {
 		return ""
 	}
-
 	return s[begin:]
 }
 
@@ -166,7 +165,7 @@ func SubstrByDisplay(s string, length int, suffix bool) string {
 		}
 
 		sl += rl
-		end += runeLen(v)
+		end += utf8.RuneLen(v)
 	}
 	if !suffix {
 		return s[:end]
@@ -228,21 +227,18 @@ func OctalStrDecode(s string) string {
 }
 
 func Md5(s string) string {
-	h := md5.New()
-	h.Write(StringToBytes(s))
-	return HexEncodeToString(h.Sum(nil))
+	h := md5.Sum(StringToBytes(s))
+	return HexEncodeToString(h[:])
 }
 
 func Sha1(s string) string {
-	h := sha1.New()
-	h.Write(StringToBytes(s))
-	return HexEncodeToString(h.Sum(nil))
+	h := sha1.Sum(StringToBytes(s))
+	return HexEncodeToString(h[:])
 }
 
 func Sha256(s string) string {
-	h := sha256.New()
-	h.Write(StringToBytes(s))
-	return HexEncodeToString(h.Sum(nil))
+	h := sha256.Sum256(StringToBytes(s))
+	return HexEncodeToString(h[:])
 }
 
 func Crc32(s string) uint32 {
@@ -332,11 +328,11 @@ func Base58Decode(input []byte) []byte {
 	payload := input[zeroBytes:]
 
 	for _, b := range payload {
-		charIndex := bytes.IndexByte(b58Alphabet, b) //反推出余数
+		charIndex := bytes.IndexByte(b58Alphabet, b) // 反推出余数
 
-		result.Mul(result, big.NewInt(58)) //之前的结果乘以58
+		result.Mul(result, big.NewInt(58)) // 之前的结果乘以58
 
-		result.Add(result, big.NewInt(int64(charIndex))) //加上这个余数
+		result.Add(result, big.NewInt(int64(charIndex))) // 加上这个余数
 
 	}
 
@@ -539,11 +535,11 @@ func IsGBK(data []byte) bool {
 	i := 0
 	for i < length {
 		if data[i] <= 0x7f {
-			//编码0~127,只有一个字节的编码，兼容ASCII码
+			// 编码0~127,只有一个字节的编码，兼容ASCII码
 			i++
 			continue
 		} else {
-			//大于127的使用双字节编码，落在gbk编码范围内的字符
+			// 大于127的使用双字节编码，落在gbk编码范围内的字符
 			if data[i] >= 0x81 &&
 				data[i] <= 0xfe &&
 				data[i+1] >= 0x40 &&
@@ -630,22 +626,4 @@ func anyToStr(value any) string {
 		b, _ := json.Marshal(v)
 		return *(*string)(unsafe.Pointer(&b))
 	}
-}
-
-func runeLen(r rune) int {
-	switch {
-	case r < 0:
-		return 0
-	case r <= rune1Max:
-		return 1
-	case r <= rune2Max:
-		return 2
-	case surrogateMin <= r && r <= surrogateMax:
-		return -1
-	case r <= rune3Max:
-		return 3
-	case r <= utf8.MaxRune:
-		return 4
-	}
-	return 0
 }
