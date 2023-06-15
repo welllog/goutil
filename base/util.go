@@ -2,17 +2,9 @@ package base
 
 import (
 	"bytes"
-	"crypto/hmac"
-	"crypto/md5"
-	"crypto/sha1"
-	"crypto/sha256"
-	"encoding/base64"
 	"encoding/binary"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"hash"
-	"hash/crc32"
 	"io/fs"
 	"math/big"
 	"net"
@@ -62,226 +54,6 @@ const (
 	surrogateMin = 0xD800
 	surrogateMax = 0xDFFF
 )
-
-// BytesToString converts byte slice to string.
-func BytesToString(b []byte) string {
-	return *(*string)(unsafe.Pointer(&b))
-}
-
-// StringToBytes converts string to byte slice. maybe safe risk
-func StringToBytes(s string) []byte {
-	return *(*[]byte)(unsafe.Pointer(
-		&struct {
-			string
-			Cap int
-		}{s, len(s)},
-	))
-}
-
-func UcFirst(s string) string {
-	for _, v := range s {
-		if unicode.IsUpper(v) {
-			return s
-		}
-		u := string(unicode.ToUpper(v))
-		return u + s[len(u):]
-	}
-	return ""
-}
-
-func LcFirst(s string) string {
-	for _, v := range s {
-		if unicode.IsLower(v) {
-			return s
-		}
-		u := string(unicode.ToLower(v))
-		return u + s[len(u):]
-	}
-	return ""
-}
-
-func StrRev(s string) string {
-	runes := []rune(s)
-	for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
-		runes[i], runes[j] = runes[j], runes[i]
-	}
-	return string(runes)
-}
-
-func StrLen(s string) int {
-	return utf8.RuneCountInString(s)
-}
-
-func Substr(s string, start, length int) string {
-	if start < 0 || length < -1 || s == "" {
-		return s
-	}
-
-	if length == 0 {
-		return ""
-	}
-
-	begin, count := -1, 0
-	for i := 0; i < len(s); {
-		if count == start {
-			if length == -1 {
-				return s[i:]
-			}
-			begin = i
-		} else if begin >= 0 && start+length == count {
-			return s[begin:i]
-		}
-
-		if bt := s[i]; bt < utf8.RuneSelf {
-			i++
-		} else {
-			_, size := utf8.DecodeRuneInString(s[i:])
-			i += size
-		}
-		count++
-	}
-
-	if begin < 0 {
-		return ""
-	}
-	return s[begin:]
-}
-
-func SubstrByDisplay(s string, length int, suffix bool) string {
-	if len(s) <= length {
-		return s
-	}
-
-	var sl, rl, end int
-	for _, v := range s {
-		if v < 128 {
-			rl = 1
-		} else {
-			rl = 2
-		}
-
-		if sl+rl > length {
-			break
-		}
-
-		sl += rl
-		end += utf8.RuneLen(v)
-	}
-	if !suffix {
-		return s[:end]
-	}
-	return s[:end] + "..."
-}
-
-func FilterMultiByteStr(s string, maxBytesNum int) string {
-	if maxBytesNum <= 0 {
-		return ""
-	}
-
-	var (
-		buf  strings.Builder
-		find bool
-	)
-
-	for i, v := range s {
-		if find {
-			if utf8.RuneLen(v) <= maxBytesNum {
-				buf.WriteRune(v)
-			}
-		} else {
-			l := utf8.RuneLen(v)
-			if l > maxBytesNum {
-				buf.Grow(len(s))
-				find = true
-				buf.WriteString(s[:i])
-			}
-		}
-	}
-
-	if find {
-		return buf.String()
-	}
-
-	return s
-}
-
-func FilterBytes(s []byte, f func(x byte) bool) []byte {
-	b := s[:0]
-	for _, x := range s {
-		if f(x) {
-			b = append(b, x)
-		}
-	}
-	return b
-}
-
-func OctalStrDecode(s string) string {
-	arr := strings.Split(s, "\\")
-	var buf strings.Builder
-	buf.Grow(len(s))
-	for _, v := range arr {
-		n, _ := strconv.ParseInt(v, 8, 64)
-		buf.WriteByte(byte(n))
-	}
-	return buf.String()
-}
-
-func Md5(s string) string {
-	h := md5.Sum(StringToBytes(s))
-	return HexEncodeToString(h[:])
-}
-
-func Sha1(s string) string {
-	h := sha1.Sum(StringToBytes(s))
-	return HexEncodeToString(h[:])
-}
-
-func Sha256(s string) string {
-	h := sha256.Sum256(StringToBytes(s))
-	return HexEncodeToString(h[:])
-}
-
-func Crc32(s string) uint32 {
-	return crc32.ChecksumIEEE(StringToBytes(s))
-}
-
-func HexEncodeToString(b []byte) string {
-	dst := make([]byte, hex.EncodedLen(len(b)))
-	hex.Encode(dst, b)
-	return BytesToString(dst)
-}
-
-func Hmac(key, data string, h func() hash.Hash) string {
-	hh := hmac.New(h, StringToBytes(key))
-	hh.Write(StringToBytes(data))
-	src := hh.Sum(nil)
-	dst := make([]byte, hex.EncodedLen(len(src)))
-	hex.Encode(dst, src)
-	return BytesToString(dst)
-}
-
-func Base64Encode(s string) string {
-	b := StringToBytes(s)
-	buf := make([]byte, base64.StdEncoding.EncodedLen(len(b)))
-	base64.StdEncoding.Encode(buf, b)
-	return BytesToString(buf)
-}
-
-func Base64Decode(s string) (string, error) {
-	switch len(s) & 3 { // a & 3 == a % 4
-	case 2:
-		s += "=="
-	case 3:
-		s += "="
-	}
-
-	dbuf := make([]byte, base64.StdEncoding.DecodedLen(len(s)))
-	n, err := base64.StdEncoding.Decode(dbuf, StringToBytes(s))
-	if err != nil {
-		return "", err
-	}
-	return BytesToString(dbuf[:n]), nil
-}
 
 var b58Alphabet = []byte("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
 
@@ -400,44 +172,6 @@ func CamelCaseToSnake(str string) string {
 	return buf.String()
 }
 
-func Min[T Number](args ...T) (min T) {
-	if len(args) == 0 {
-		return
-	}
-	min = args[0]
-	for _, v := range args[1:] {
-		if v < min {
-			min = v
-		}
-	}
-	return
-}
-
-func Max[T Number](args ...T) (max T) {
-	if len(args) == 0 {
-		return
-	}
-	max = args[0]
-	for _, v := range args[1:] {
-		if v > max {
-			max = v
-		}
-	}
-	return
-}
-
-func Pow(x, n int) int {
-	ret := 1 // 结果初始为0次方的值，整数0次方为1。如果是矩阵，则为单元矩阵。
-	for n != 0 {
-		if (n & 1) != 0 { // 奇数
-			ret = ret * x
-		}
-		n >>= 1
-		x = x * x
-	}
-	return ret
-}
-
 func GetChinaZone() *time.Location {
 	return time.FixedZone("CST", 8*3600)
 }
@@ -454,46 +188,6 @@ func IsIntStr(s string) bool {
 func FileExists(filePath string) bool {
 	_, err := os.Stat(filePath)
 	return err == nil || errors.Is(err, fs.ErrExist)
-}
-
-func OneBitCount(n int) int {
-	var pos int
-	for i := n; i != 0; pos++ {
-		i &= i - 1 // 消去最后一位的1(binary)
-	}
-	return pos
-}
-
-func IsEvenNumber(n int) bool {
-	return 0 == (n & 1)
-}
-
-func Swap(a, b *int) {
-	*a ^= *b
-	*b ^= *a
-	*a ^= *b
-}
-
-func Abs(n int) int {
-	i := n >> (WordBits - 1)
-	return n ^ i - i
-}
-
-func MaxOneBitApproximate(n uint) uint { // 得到最高位的1
-	n |= n >> 1
-	n |= n >> 2
-	n |= n >> 4
-	n |= n >> 8
-	n |= n >> 16
-	return (n + 1) >> 1
-}
-
-func MinOneBitApproximate(n int) int {
-	return n & (-n) // 保留最后一个1
-}
-
-func IsPow2(n int) bool {
-	return n&(n-1) == 0
 }
 
 func VerifyEmail(s string) bool {
@@ -553,10 +247,6 @@ func IsGBK(data []byte) bool {
 		}
 	}
 	return true
-}
-
-func NumBinaryStr(n int) string {
-	return strconv.FormatUint(uint64(*(*uint)(unsafe.Pointer(&n))), 2)
 }
 
 func RegPattern(sensitiveWords string) string {

@@ -5,7 +5,6 @@ Summary of commonly used codes for work
 
 
 packages:
-  * base: commonly used character and array processing functions
   * etcdutil: etcd related functions
   * require: unit test helper functions
   * throttle: Token Bucket Current Limiter
@@ -13,3 +12,4 @@ packages:
   * counter: counter functions
   * structtag: struct tag related functions
   * xlock: lock related functions
+  * protojson: protobuf json related functions
